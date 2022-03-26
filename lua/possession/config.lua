@@ -22,8 +22,23 @@ local function defaults()
             before_load = function(name, user_data) return user_data end,
             after_load = function(name, user_data) end,
         },
+        close_windows = {
+            enabled = true,
+            preserve_layout = true,  -- or fun(win): boolean
+            match = {
+                floating = true,
+                buftype = {},
+                filetype = {},
+                custom = false,  -- or fun(win): boolean
+            },
+        },
+        delete_hidden_buffers = {
+            enabled = vim.o.sessionoptions:match('buffer') ~= nil,
+            force = false,
+        },
     }
 end
+
 local config = defaults()
 
 function M.setup(opts)

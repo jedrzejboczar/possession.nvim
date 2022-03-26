@@ -62,4 +62,31 @@ function M.lazy(fn)
     end
 end
 
+-- For variables that can be values or functions.
+function M.as_function(fn_or_value)
+    if type(fn_or_value) == 'function' then
+        return fn_or_value
+    else
+        return function()
+            return fn_or_value
+        end
+    end
+end
+
+-- Create a function that indexes given table
+function M.getter(tbl)
+    return function(key)
+        return tbl[key]
+    end
+end
+
+-- Transform list-like table to a set {val = true, ...}
+function M.list_to_set(list)
+    local set = {}
+    for _, val in ipairs(list) do
+        set[val] = true
+    end
+    return set
+end
+
 return M

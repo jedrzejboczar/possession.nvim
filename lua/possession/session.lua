@@ -2,6 +2,7 @@ local M = {}
 
 local Path = require('plenary.path')
 local config = require('possession.config')
+local cleanup = require('possession.cleanup')
 local utils = require('possession.utils')
 
 -- Save current session
@@ -24,6 +25,11 @@ function M.save(name, opts)
     -- Get user data to store, abort on false/nil
     local user_data = config.hooks.before_save(name)
     if not user_data then
+        return
+    end
+
+    -- Run builtin cleanup
+    if not cleanup.before_save() then
         return
     end
 
