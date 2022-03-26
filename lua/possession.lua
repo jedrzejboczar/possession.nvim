@@ -1,4 +1,5 @@
 local config = require('possession.config')
+local session = require('possession.session')
 
 local function define_commands(defs)
     for name, parts in pairs(defs) do
@@ -36,4 +37,8 @@ end
 
 return {
     setup = setup,
+    save = session.save,
+    load = session.load,
+    delete = session.delete,
+    list = session.list,
 }
