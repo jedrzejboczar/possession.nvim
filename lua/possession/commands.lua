@@ -49,7 +49,7 @@ function M.list(full)
             data.vimscript = nil
         end
     end
-    print(vim.inspect(sessions))
+    print(vim.inspect(sessions, { indent = '    ' }))
 end
 
 return M
