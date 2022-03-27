@@ -23,7 +23,7 @@ local function defaults()
             after_load = function(name, user_data) end,
         },
         close_windows = {
-            enabled = true,
+            hooks = {'before_save', 'before_load'},
             preserve_layout = true,  -- or fun(win): boolean
             match = {
                 floating = true,
@@ -33,7 +33,10 @@ local function defaults()
             },
         },
         delete_hidden_buffers = {
-            enabled = vim.o.sessionoptions:match('buffer') ~= nil,
+            hooks = {
+                'before_load',
+                vim.o.sessionoptions:match('buffer') and 'before_save',
+            },
             force = false,
         },
     }

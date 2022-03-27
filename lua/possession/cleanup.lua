@@ -43,36 +43,40 @@ function M.close_windows(opts)
             vim.api.nvim_win_set_buf(win, scratch())
         end
     end
+
+    return true
 end
 
--- Delete all hidden buffers. Returns `true` (sic!) on failure, `nil` on success.
+-- Delete all hidden buffers. Returns `false` on failure.
 -- `opts` should have the same format as `config.delete_hidden_buffers`.
 function M.delete_hidden_buffers(opts)
     local visible = utils.list_to_set(vim.tbl_map(vim.api.nvim_win_get_buf, vim.api.nvim_list_wins()))
     local hidden = vim.tbl_filter(utils.getter(visible), vim.api.nvim_list_bufs())
+
     for _, buf in ipairs(hidden) do
         if not pcall(vim.api.nvim_buf_delete, buf, { force = opts.force }) then
             vim.notify(
                 string.format('Cannot delete buffer with unsaved changes: "%s"', vim.api.nvim_buf_get_name(buf)),
                 vim.log.levels.ERROR
             )
-            return true
+            return false
         end
     end
+
+    return true
 end
 
--- All the cleanup before saving session
-function M.before_save()
+-- Run all the cleanup for a given hook
+function M.run(hook)
     local order = {
-        { config.close_windows.enabled, M.close_windows, config.close_windows },
-        { config.delete_hidden_buffers.enabled, M.delete_hidden_buffers, config.delete_hidden_buffers },
+        { config.close_windows, M.close_windows },
+        { config.delete_hidden_buffers, M.delete_hidden_buffers },
     }
 
     for _, call in ipairs(order) do
-        local cond, fn, opts = unpack(call)
-        if cond then
-            local failed = fn(opts) ~= nil
-            if failed then
+        local opts, fn = unpack(call)
+        if vim.tbl_contains(opts.hooks, hook) then
+            if not fn(opts) then
                 return false
             end
         end
