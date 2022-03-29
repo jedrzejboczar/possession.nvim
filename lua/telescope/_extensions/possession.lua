@@ -92,6 +92,6 @@ end
 
 return telescope.register_extension {
     exports = {
-        possession = list_sessions,
+        list = list_sessions,
     },
 }
