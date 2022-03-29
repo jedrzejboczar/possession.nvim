@@ -26,6 +26,14 @@ function M.session_path_short(name)
     end
 end
 
+-- Get session name from a session file name
+-- In general session file name should be in the form "<name>.json",
+-- where <name> is the same as the value of JSON key "name", but if for some reason
+-- those don't match (someone changed file name), better fall back to JSON contents.
+function M.session_name_from_path(path)
+    return vim.fn.fnamemodify(Path:new(path):absolute(), ':t:r')
+end
+
 -- Run :mksession! and return output as string by writing to a temporary file
 function M.mksession()
     local tmp = vim.fn.tempname()

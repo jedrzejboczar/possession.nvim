@@ -27,7 +27,8 @@ end
 
 -- Limits filesystem access by caching the results by time
 M.complete_session = complete_list(utils.throttle(function()
-    return vim.tbl_keys(session.list { no_read = true })
+    local files = vim.tbl_keys(session.list { no_read = true })
+    return vim.tbl_map(utils.session_name_from_path, files)
 end, 3000))
 
 function M.save(name, no_confirm)

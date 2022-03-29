@@ -119,8 +119,8 @@ end
 -- Get a list of sessions
 --@param no_read boolean: do not read/parse session files, just scan the directory
 --@return table: depending on `no_read` this will be:
---  no_read=false: table of {name: session_data} for all available sessions
---  no_read=true: table of {name: true}
+--  no_read=false: table of {filename: session_data} for all available sessions
+--  no_read=true: table of {filename: true}
 function M.list(opts)
     opts = vim.tbl_extend('force', {
         no_read = true,
@@ -130,9 +130,8 @@ function M.list(opts)
     local glob = utils.session_path('*'):absolute()
     for _, file in ipairs(vim.fn.glob(glob, true, true)) do
         local path = Path:new(file)
-        local name = vim.fn.fnamemodify(path:absolute(), ':t:r')
         local data = opts.no_read and vim.json.decode(path:read()) or path:absolute()
-        sessions[name] = data
+        sessions[file] = data
     end
 
     return sessions
