@@ -39,6 +39,16 @@ function M.session_name_from_path(path)
     return vim.fn.fnamemodify(Path:new(path):absolute(), ':t:r')
 end
 
+-- Change the path to last file (make the symlink point to `path`)
+function M.update_last_session(path)
+    -- Must unlink if exists because fs_symlink won't overwrite existing links
+    local link_path = M.last_session_link_path()
+    if link_path:exists() then
+        link_path:rm()
+    end
+    vim.loop.fs_symlink(path:absolute(), link_path:absolute())
+end
+
 -- Run :mksession! and return output as string by writing to a temporary file
 function M.mksession()
     local tmp = vim.fn.tempname()

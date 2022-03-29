@@ -4,7 +4,7 @@
 COMMANDS                                                 *possession-commands*
 
 In commands with optional `name` argument, if the argument is omitted then
-last loaded session will be used.
+last loaded/saved session will be used.
 
                                                              *:PossessionSave*
 :PossessionSave [{name}]~

@@ -5,7 +5,7 @@ local config = require('possession.config')
 local cleanup = require('possession.cleanup')
 local utils = require('possession.utils')
 
--- Get last loaded session
+-- Get last loaded/saved session
 --@return string | nil: path to session file
 function M.last()
     local link_path = utils.last_session_link_path()
@@ -66,6 +66,10 @@ function M.save(name, opts)
         if ok then
             vim.fn.mkdir(config.session_dir, 'p')
             path:write(vim.json.encode(session_data), 'w')
+
+            -- Update link pointing to last session
+            utils.update_last_session(path)
+
             utils.info('Saved as "%s"', short)
         else
             utils.info('Aborting')
@@ -118,12 +122,7 @@ function M.load(name_or_data)
 
     -- Update link pointing to last session if loaded from file
     if path then
-        -- Must unlink if exists because fs_symlink won't overwrite existing links
-        local link_path = utils.last_session_link_path()
-        if link_path:exists() then
-            link_path:rm()
-        end
-        vim.loop.fs_symlink(path:absolute(), link_path:absolute())
+        utils.update_last_session(path)
     end
 
     cleanup.run('after_load')
