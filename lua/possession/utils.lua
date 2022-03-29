@@ -16,6 +16,11 @@ function M.session_path(name)
     return Path:new(config.session_dir) / (name .. '.json')
 end
 
+-- Get path to symlink that points to last session
+function M.last_session_link_path()
+    return Path:new(config.session_dir) / '__last__'
+end
+
 -- Get short session path for printing
 function M.session_path_short(name)
     local path = M.session_path(name)

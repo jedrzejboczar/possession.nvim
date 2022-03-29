@@ -22,7 +22,7 @@ local function setup(opts)
         define_commands {
             [config.commands.save] = {
                 with_name,
-                'lua require("possession.commands").save(<f-args>, "<bang>" == "!")',
+                'lua require("possession.commands").save(<q-args>, "<bang>" == "!")',
             },
             [config.commands.load] = {
                 with_name,
@@ -51,4 +51,5 @@ return {
     delete = session.delete,
     show = session.show,
     list = session.list,
+    last = session.last,
 }

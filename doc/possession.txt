@@ -3,12 +3,15 @@
 
 COMMANDS                                                 *possession-commands*
 
+In commands with optional `name` argument, if the argument is omitted then
+last loaded session will be used.
+
                                                              *:PossessionSave*
 :PossessionSave [{name}]~
 
-Save the current session information under `session_dir`. If `name` is not
-specified then user will be prompted. Use `:PossessionSave! [{name}]` to avoid
-asking for confirmation when overwriting existing session file.
+Save the current session information under `session_dir`. Use
+`:PossessionSave! [{name}]` to avoid asking for confirmation when overwriting
+existing session file.
 
                                                              *:PossessionLoad*
 :PossessionLoad [{name}]~

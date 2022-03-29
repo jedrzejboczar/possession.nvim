@@ -32,19 +32,45 @@ M.complete_session = complete_list(utils.throttle(function()
     return vim.tbl_map(utils.session_name_from_path, files)
 end, 3000))
 
+local function get_name(name)
+    if not name or name == '' then
+        local path = session.last()
+        if not path then
+            vim.notify('Cannot find last loaded session name', vim.log.levels.ERROR)
+            return nil
+        end
+        name = utils.session_name_from_path(path)
+    end
+    return name
+end
+
 function M.save(name, no_confirm)
-    session.save(name, { no_confirm = no_confirm })
+    local name = get_name(name)
+    if name then
+        session.save(name, { no_confirm = no_confirm })
+    end
 end
 
 function M.load(name)
-    session.load(name)
+    local name = get_name(name)
+    if name then
+        session.load(name)
+    end
 end
 
 function M.delete(name)
-    session.delete(name)
+    local name = get_name(name)
+    if name then
+        session.delete(name)
+    end
 end
 
 function M.show(name)
+    local name = get_name(name)
+    if not name then
+        return
+    end
+
     local path = utils.session_path(name)
     local data = vim.json.decode(path:read())
     data.file = path:absolute()
@@ -64,7 +90,7 @@ function M.list(full)
         table.insert(lines, '  Cwd: ' .. data.cwd)
 
         table.insert(lines, '  User data:')
-        local user_data = vim.inspect(data.user_data, { indent= '    ' })
+        local user_data = vim.inspect(data.user_data, { indent = '    ' })
         for _, line in ipairs(vim.split(user_data, '\n', { plain = true })) do
             table.insert(lines, '  ' .. line)
         end
