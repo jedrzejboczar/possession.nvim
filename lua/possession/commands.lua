@@ -2,6 +2,7 @@ local M = {}
 
 local session = require('possession.session')
 local utils = require('possession.utils')
+local info = require('possession.info')
 
 local function complete_list(candidates, opts)
     opts = vim.tbl_extend('force', {
@@ -43,14 +44,37 @@ function M.delete(name)
     session.delete(name)
 end
 
+function M.show(name)
+    local path = utils.session_path(name)
+    local data = vim.json.decode(path:read())
+    data.file = path:absolute()
+
+    local buf = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
+    info.display_session(data, buf)
+    vim.api.nvim_win_set_buf(0, buf)
+end
+
 function M.list(full)
     local sessions = session.list()
-    if not full then
-        for _, data in pairs(sessions) do
-            data.vimscript = nil
+    local lines = {}
+    for file, data in pairs(sessions) do
+        table.insert(lines, 'Name: ' .. data.name)
+        table.insert(lines, '  File: ' .. file)
+        table.insert(lines, '  Cwd: ' .. data.cwd)
+
+        table.insert(lines, '  User data:')
+        local user_data = vim.inspect(data.user_data, { indent= '    ' })
+        for _, line in ipairs(vim.split(user_data, '\n', { plain = true })) do
+            table.insert(lines, '  ' .. line)
+        end
+
+        if full then
+            -- Does not really make sense to list vimscript, at least join lines.
+            table.insert(lines, '  Vimscript: ' .. data.vimscript:gsub('\n', '\\n'))
         end
     end
-    print(vim.inspect(sessions, { indent = '    ' }))
+    print(table.concat(lines, '\n'))
 end
 
 return M

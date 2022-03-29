@@ -14,6 +14,7 @@ local function defaults()
             save = 'PossessionSave',
             load = 'PossessionLoad',
             delete = 'PossessionDelete',
+            show = 'PossessionShow',
             list = 'PossessionList',
         },
         hooks = {

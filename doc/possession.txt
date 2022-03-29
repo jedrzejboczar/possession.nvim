@@ -20,6 +20,11 @@ Load given session from disk.
 
 Delete given session file.
 
+                                                             *:PossessionShow*
+:PossessionShow [{name}]~
+
+Show given session info.
+
                                                              *:PossessionList*
 :PossessionList~
 
@@ -131,6 +136,31 @@ delete_hidden_buffers.force~
 
     WARNING: this may lead to loosing unsaved changes. Instead of using this
     option consider removing `buffers` from 'sessionoptions'.
+
+
+SESSION FILE                                         *possession-session-file*
+
+Session files are stored in JSON format with the following keys:
+
+name~
+    `string`
+    Session name. The session file name should be in the format `<name>.json`,
+    so the information is redundant and mismatch may sometimes lead to
+    unexpected results.
+
+cwd~
+    `string`
+    Vim's current working directory (|getcwd()|) at the moment of session
+    creation.
+
+vimscript~
+    `string`
+    Code genereated by |:mksession| that is used to restore a session.
+
+user_data~
+    `table`
+    Used to store arbitrary user data. Value of this table is
+    generated/available in |possession-hooks|.
 
 
 vim:tw=78:et:ft=help:norl:
