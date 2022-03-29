@@ -146,14 +146,14 @@ function M.delete(name, opts)
     local short = utils.session_path_short(name)
 
     if not path:exists() then
-        vim.notify(string.format('Session not exists: "%s"', path:absolute()), vim.log.level.WARN)
+        utils.warn('Session not exists: "%s"', path:absolute())
         return
     end
 
     local commit = function(ok)
         if ok then
             if vim.fn.delete(path:absolute()) ~= 0 then
-                vim.notify(string.format('Failed to delete session: "%s"', short), vim.log.levels.ERROR)
+                utils.error('Failed to delete session: "%s"', short)
             else
                 utils.info('Deleted "%s"', short)
             end

@@ -72,7 +72,7 @@ local function list_sessions(opts)
                 actions[telescope_act]:replace(function()
                     local entry = action_state.get_selected_entry()
                     if not entry then
-                        vim.notify('Nothing currently selected', vim.log.levels.WARN)
+                        utils.warn('Nothing currently selected')
                         return
                     end
                     actions.close(buf)

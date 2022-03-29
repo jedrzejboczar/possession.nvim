@@ -55,10 +55,7 @@ function M.delete_hidden_buffers(opts)
 
     for _, buf in ipairs(hidden) do
         if not pcall(vim.api.nvim_buf_delete, buf, { force = opts.force }) then
-            vim.notify(
-                string.format('Cannot delete buffer with unsaved changes: "%s"', vim.api.nvim_buf_get_name(buf)),
-                vim.log.levels.ERROR
-            )
+            utils.error('Cannot delete buffer with unsaved changes: "%s"', vim.api.nvim_buf_get_name(buf))
             return false
         end
     end

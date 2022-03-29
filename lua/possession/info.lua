@@ -1,5 +1,7 @@
 local M = {}
 
+local utils = require('possession.utils')
+
 local function split_lines(s, trimempty)
     return vim.split(s, '\n', { plain = true, trimempty = trimempty })
 end
@@ -58,7 +60,7 @@ function M.display_session(data, buf)
     -- Try to add vimscript injections
     local ok = pcall(patch_treesitter_injections, buf)
     if not ok then
-        vim.notify('Adding treesitter injections in preview window failed', vim.log.levels.WARN)
+        utils.warn('Adding treesitter injections in preview window failed')
     end
 
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)

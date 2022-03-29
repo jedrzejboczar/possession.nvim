@@ -9,6 +9,14 @@ function M.info(...)
     end
 end
 
+function M.warn(...)
+    vim.notify(string.format(...), vim.log.levels.WARN)
+end
+
+function M.error(...)
+    vim.notify(string.format(...), vim.log.levels.ERROR)
+end
+
 -- Get session path
 function M.session_path(name)
     -- Not technically need but should guard against potential errors

@@ -36,7 +36,7 @@ local function get_name(name)
     if not name or name == '' then
         local path = session.last()
         if not path then
-            vim.notify('Cannot find last loaded session name', vim.log.levels.ERROR)
+            utils.error('Cannot find last loaded session name')
             return nil
         end
         name = utils.session_name_from_path(path)
