@@ -46,6 +46,13 @@ function M.display_session(data, buf)
         table.insert(lines, user_data[i])
     end
 
+    local plugin_data = vim.inspect(data.plugins, { indent = '    ' })
+    plugin_data = split_lines(plugin_data)
+    table.insert(lines, 'plugin_data = ' .. plugin_data[1])
+    for i = 2, #plugin_data do
+        table.insert(lines, plugin_data[i])
+    end
+
     table.insert(lines, '')
     table.insert(lines, 'vimscript = [[')
     local vimscript = split_lines(data.vimscript, true)

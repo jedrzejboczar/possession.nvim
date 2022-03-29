@@ -40,6 +40,9 @@ local function defaults()
             },
             force = false,
         },
+        plugins = {
+            nvim_tree = true,
+        },
     }
 end
 
