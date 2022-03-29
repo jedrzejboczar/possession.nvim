@@ -133,16 +133,43 @@ function M.load(name_or_data)
 end
 
 -- Delete session by name
-function M.delete(name)
-    vim.validate { name = { name, 'string' } }
+function M.delete(name, opts)
+    opts = vim.tbl_extend('force', {
+        no_confirm = false,
+    }, opts or {})
+
+    vim.validate {
+        name = { name, 'string' },
+        no_confirm = { opts.no_confirm, 'boolean' },
+    }
 
     local path = utils.session_path(name)
     local short = utils.session_path_short(name)
 
-    if vim.fn.delete(path:absolute()) ~= 0 then
-        vim.notify(string.format('Failed to delete session: "%s"', short), vim.log.levels.ERROR)
+    if not path:exists() then
+        vim.notify(string.format('Session not exists: "%s"', path:absolute()), vim.log.level.WARN)
+        return
+    end
+
+    local commit = function(ok)
+        if ok then
+            if vim.fn.delete(path:absolute()) ~= 0 then
+                vim.notify(string.format('Failed to delete session: "%s"', short), vim.log.levels.ERROR)
+            else
+                utils.info('Deleted "%s"', short)
+            end
+        else
+            utils.info('Aborting')
+        end
+    end
+
+    if not opts.no_confirm then
+        local prompt = string.format('File "%s" exists, delete? [yN] ', short)
+        vim.ui.input({ prompt = prompt }, function(answer)
+            commit(vim.tbl_contains({ 'y', 'yes' }, answer:lower()))
+        end)
     else
-        utils.info('Deleted "%s"', short)
+        commit(true)
     end
 end
 

@@ -21,7 +21,7 @@ Load given session from disk.
                                                            *:PossessionDelete*
 :PossessionDelete [{name}]~
 
-Delete given session file.
+Delete given session file. `:PossessionDelete!` will not ask for confirmation.
 
                                                              *:PossessionShow*
 :PossessionShow [{name}]~

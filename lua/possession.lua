@@ -18,10 +18,10 @@ local function setup(opts)
     local complete_session = "v:lua.require'possession.commands'.complete_session"
 
     if config.commands then
-        local with_name = '-nargs=? -bang -complete=customlist,' .. complete_session
+        local with_name = '-nargs=? -complete=customlist,' .. complete_session
         define_commands {
             [config.commands.save] = {
-                with_name,
+                with_name .. ' -bang',
                 'lua require("possession.commands").save(<q-args>, "<bang>" == "!")',
             },
             [config.commands.load] = {
@@ -29,8 +29,8 @@ local function setup(opts)
                 'lua require("possession.commands").load(<f-args>)',
             },
             [config.commands.delete] = {
-                with_name,
-                'lua require("possession.commands").delete(<f-args>)',
+                with_name .. ' -bang',
+                'lua require("possession.commands").delete(<q-args>, "<bang>" == "!")',
             },
             [config.commands.show] = {
                 with_name,
