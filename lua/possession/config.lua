@@ -23,24 +23,24 @@ local function defaults()
             before_load = function(name, user_data) return user_data end,
             after_load = function(name, user_data) end,
         },
-        close_windows = {
-            hooks = {'before_save', 'before_load'},
-            preserve_layout = true,  -- or fun(win): boolean
-            match = {
-                floating = true,
-                buftype = {},
-                filetype = {},
-                custom = false,  -- or fun(win): boolean
-            },
-        },
-        delete_hidden_buffers = {
-            hooks = {
-                'before_load',
-                vim.o.sessionoptions:match('buffer') and 'before_save',
-            },
-            force = false,
-        },
         plugins = {
+            close_windows = {
+                hooks = {'before_save', 'before_load'},
+                preserve_layout = true,  -- or fun(win): boolean
+                match = {
+                    floating = true,
+                    buftype = {'help'},
+                    filetype = {},
+                    custom = false,  -- or fun(win): boolean
+                },
+            },
+            delete_hidden_buffers = {
+                hooks = {
+                    'before_load',
+                    vim.o.sessionoptions:match('buffer') and 'before_save',
+                },
+                force = false,
+            },
             nvim_tree = true,
         },
     }

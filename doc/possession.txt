@@ -41,7 +41,6 @@ To configure the plugin use:
 >
     require('possession').setup { ... }
 <
-
 The following configuration options are available:
 
 session_dir~
@@ -87,58 +86,99 @@ hooks.after_load~
     Invoked just before `possession.load` returns. Receives the `user_data`
     from the `before_load` hook.
 
+                                                   *possession-plugins-config*
+plugins~
+    `table`
+    This table contains configuration options for |possession-plugins|. Some
+    keys are common to each plugin. The rest depends on a specific plugin.
+
+plugins.*~
+    `table | boolean`
+    This is plugin configuration table. It can be set to `false` to disable a
+    plugin. If set to `true` the plugin will be enabled with an empty table,
+    which is sufficient with plugins that take no options.
+
+plugins.*.hooks~
+    `table { string } | nil`
+    List of hook names which are enabled for this plugin. If set to `nil` then
+    all hooks will be enabled (only the ones actually used by the plugin).
+    Setting this to an empty table (`{}`) will disable all hooks.
+
                                                     *possession-close-windows*
-close_windows.hooks~
-    `table { string }`
-    Close (matched) windows when executing hooks from this list.
 
-    Note: to delete buffers match them with `close_windows` and wait for
-    `delete_hidden_buffers` to do its job.
+Plugin that simply closes Vim windows on given hooks. Windows to close are
+determined by configured matching rules.
 
-close_windows.preserve_layout~
+Note: to delete buffers match them with |possession-close-windows| and wait
+for |possession-delete-hidden-buffers| to do its job.
+
+plugins.close_windows.preserve_layout~
     `boolean | function(window: number): boolean`
     When deleting a window preserve overall windows layout by replacing the
     window's buffer with a throwaway scratch buffer.
 
-close_windows.match~
+plugins.close_windows.match~
     `table`
     Rules for selecting windows to be closed.
 
-close_windows.match.floating~
+plugins.close_windows.match.floating~
     `boolean`
     Match floating windows. It is recommended to set this to `true` as
     floating window may cause |:mksession| to mess up windows layout.
 
-close_windows.match.buftype~
+plugins.close_windows.match.buftype~
     `table { string }`
     List of 'buftype's that will match window's buffer.
 
-close_windows.match.filetype~
+plugins.close_windows.match.filetype~
     `table { string }`
     List of 'filetype's that will match window's buffer.
 
-close_windows.match.custom~
+plugins.close_windows.match.custom~
     `boolean | function(window: number): boolean`
     Can be used for arbitrary window matching logic. Windows for which the
     function returns `true` will be closed.
 
                                             *possession-delete-hidden-buffers*
-delete_hidden_buffers.hooks~
-    `table { string }`
-    Delete all hidden buffers (buffers with no associated windows) when
-    executing hooks from this list. This will always run after `close_windows`
-    so all the previously closed windows will also have their buffers deleted.
 
-    Note: instead of using this cleanup on `before_save`, one could remove
-    `buffers` from 'sessionoptions' (or have both), which would ignore any
-    hidden buffers when saving sessions.
+Plugin that deletes hidden buffers (buffers with no associated windows).
+It will always run after |possession-close-windows| so all the previously
+closed windows will also have their buffers deleted.
 
-delete_hidden_buffers.force~
+Note: instead of using this plugin on `before_save`, one could remove
+`buffers` from 'sessionoptions' (or have both), which would ignore any
+hidden buffers when saving sessions.
+
+plugins.delete_hidden_buffers.force~
     `boolean`
     Delete buffers even if they contain changes.
 
     WARNING: this may lead to loosing unsaved changes. Instead of using this
     option consider removing `buffers` from 'sessionoptions'.
+
+
+PLUGINS                                                   *possession-plugins*
+
+Plugins are extensions that perform additional actions on hooks, similarly to
+how user hooks work. Possession plugins are not equivalent to Vim plugins,
+i.e. a possession plugin can implement actions related to an actual Vim
+plugin (like closing/restoring `nvlm-tree` windows), but it could also do
+any other work that is not related to any particular Vim plugin.
+
+Plugins work by exposing hooks equivalent to the hooks provided to the user,
+with some notable differences:
+
+1. Hook functions take additional `config` parameter as first argument. It
+contains current plugin configuration as defined under `plugins.<name>` in the
+configuration table (set by `setup`, see |possession-config|).
+Note: There is NO need to check if the plugin is enabled. This will be done
+earlier, so if a plugin hook is called it means that it is enabled.
+
+2. Instead of `user_data`, a `plugin_data` table is used. The plugin can use
+it to store/retrieve data between sessions. Any hooks that would return
+`user_data` should return this table. Returning `nil` will abort
+saving/loading the session! The `plugin_data` table will be stored under
+`plugins.<name>` path in the JSON file automatically.
 
 
 SESSION FILE                                         *possession-session-file*

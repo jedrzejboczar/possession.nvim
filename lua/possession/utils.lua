@@ -56,6 +56,13 @@ function M.as_function(fn_or_value)
     end
 end
 
+function M.bind(fn, ...)
+    local args = {...}
+    return function(...)
+        return fn(unpack(args), ...)
+    end
+end
+
 -- Create a function that indexes given table
 function M.getter(tbl)
     return function(key)

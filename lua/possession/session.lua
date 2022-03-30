@@ -2,7 +2,6 @@ local M = {}
 
 local Path = require('plenary.path')
 local config = require('possession.config')
-local cleanup = require('possession.cleanup')
 local utils = require('possession.utils')
 local plugins = require('possession.plugins')
 local paths = require('possession.paths')
@@ -45,11 +44,6 @@ function M.save(name, opts)
     -- Get user data to store, abort on false/nil
     local user_data = config.hooks.before_save(name)
     if not user_data then
-        return
-    end
-
-    -- Run builtin cleanup
-    if not cleanup.run('before_save') then
         return
     end
 
@@ -121,11 +115,6 @@ function M.load(name_or_data)
         return
     end
 
-    -- Run builtin cleanup
-    if not cleanup.run('before_load') then
-        return
-    end
-
     -- Run plugins
     local plugin_data = plugins.before_load(session_data.name, session_data.plugins or {})
     if not plugin_data then
@@ -141,7 +130,6 @@ function M.load(name_or_data)
     end
 
     plugins.after_load(session_data.name, plugin_data)
-    cleanup.run('after_load')
     config.hooks.after_load(session_data.name, user_data)
 
     utils.info('Loaded session "%s"', session_data.name)

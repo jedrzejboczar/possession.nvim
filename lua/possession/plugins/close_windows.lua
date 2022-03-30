@@ -1,7 +1,7 @@
 local M = {}
 
 local fun = require('plenary.fun')
-local config = require('possession.config')
+local plugins = require('possession.plugins')
 local utils = require('possession.utils')
 
 local function is_floating(win)
@@ -25,10 +25,10 @@ local function match_window(match, win)
 end
 
 -- Close all windows that match predicates.
--- `opts` should have the same format as `config.close_windows`.
+-- `opts` should have the same format as `config.plugins.close_windows`.
 function M.close_windows(opts)
     local windows = vim.api.nvim_list_wins()
-    local to_close = vim.tbl_filter(fun.bind(match_window, opts.match), windows)
+    local to_close = vim.tbl_filter(utils.bind(match_window, opts.match), windows)
 
     local preserve_layout = utils.as_function(opts.preserve_layout)
     local scratch = utils.lazy(function()
@@ -47,39 +47,6 @@ function M.close_windows(opts)
     return true
 end
 
--- Delete all hidden buffers. Returns `false` on failure.
--- `opts` should have the same format as `config.delete_hidden_buffers`.
-function M.delete_hidden_buffers(opts)
-    local visible = utils.list_to_set(vim.tbl_map(vim.api.nvim_win_get_buf, vim.api.nvim_list_wins()))
-    local hidden = vim.tbl_filter(utils.getter(visible), vim.api.nvim_list_bufs())
-
-    for _, buf in ipairs(hidden) do
-        if not pcall(vim.api.nvim_buf_delete, buf, { force = opts.force }) then
-            utils.error('Cannot delete buffer with unsaved changes: "%s"', vim.api.nvim_buf_get_name(buf))
-            return false
-        end
-    end
-
-    return true
-end
-
--- Run all the cleanup for a given hook
-function M.run(hook)
-    local order = {
-        { config.close_windows, M.close_windows },
-        { config.delete_hidden_buffers, M.delete_hidden_buffers },
-    }
-
-    for _, call in ipairs(order) do
-        local opts, fn = unpack(call)
-        if vim.tbl_contains(opts.hooks, hook) then
-            if not fn(opts) then
-                return false
-            end
-        end
-    end
-
-    return true
-end
+M = vim.tbl_extend('error', M, plugins.implement_basic_hooks(M.close_windows))
 
 return M
