@@ -27,37 +27,55 @@ end
 
 -- Save current session
 --
---@param vimscript string?: mksession-generated commands
---@param no_confirm boolean: do not ask when overwriting existing file
+--@param vimscript string?: mksession-generated commands, ignore hooks
+--@param no_confirm boolean?: do not ask when overwriting existing file
+--@param callback function?: called after saving (as vim.ui.input may be async)
+--@param cwd string?: force cwd, useful in combination with vimscript
 function M.save(name, opts)
     opts = vim.tbl_extend('force', {
         vimscript = nil,
         no_confirm = false,
+        callback = nil,
+        cwd = nil,
     }, opts or {})
 
     vim.validate {
         name = { name, 'string' },
         vimscript = { opts.vimscript, { 'nil', 'string' } },
         no_confirm = { opts.no_confirm, 'boolean' },
+        callback = { opts.callback, { 'function', 'nil' } },
+        cwd = { opts.cwd, { 'string', 'nil' } },
     }
 
-    -- Get user data to store, abort on false/nil
-    local user_data = config.hooks.before_save(name)
-    if not user_data then
-        return
-    end
+    local vimscript
+    local user_data
+    local plugin_data
 
-    -- Run plugins
-    local plugin_data = plugins.before_save(name)
-    if not plugin_data then
-        return
+    if opts.vimscript then
+        vimscript = opts.vimscript
+        user_data = {}
+        plugin_data = {}
+    else
+        -- Get user data to store, abort on false/nil
+        user_data = config.hooks.before_save(name)
+        if not user_data then
+            return
+        end
+
+        -- Run plugins
+        plugin_data = plugins.before_save(name)
+        if not plugin_data then
+            return
+        end
+
+        vimscript = M.mksession()
     end
 
     -- Generate data for serialization
     local session_data = {
         name = name,
-        vimscript = opts.vimscript or M.mksession(),
-        cwd = vim.fn.getcwd(),
+        vimscript = vimscript,
+        cwd = opts.cwd or vim.fn.getcwd(),
         user_data = user_data,
         plugins = plugin_data,
     }
@@ -78,8 +96,14 @@ function M.save(name, opts)
             utils.info('Aborting')
         end
 
-        plugins.after_save(name, plugin_data, not ok)
-        config.hooks.after_save(name, user_data, not ok)
+        if not opts.vimscript then
+            plugins.after_save(name, plugin_data, not ok)
+            config.hooks.after_save(name, user_data, not ok)
+        end
+
+        if opts.callback then
+            opts.callback()
+        end
     end
 
     if path:exists() and not opts.no_confirm then
@@ -136,14 +160,18 @@ function M.load(name_or_data)
 end
 
 -- Delete session by name
+--@param no_confirm boolean?: do not ask when deleting
+--@param callback function?: called after saving (as vim.ui.input may be async)
 function M.delete(name, opts)
     opts = vim.tbl_extend('force', {
         no_confirm = false,
+        callback = nil,
     }, opts or {})
 
     vim.validate {
         name = { name, 'string' },
         no_confirm = { opts.no_confirm, 'boolean' },
+        callback = { opts.callback, { 'function', 'nil' } },
     }
 
     local path = paths.session(name)
@@ -164,6 +192,10 @@ function M.delete(name, opts)
         else
             utils.info('Aborting')
         end
+
+        if opts.callback then
+            opts.callback()
+        end
     end
 
     if not opts.no_confirm then
@@ -177,7 +209,7 @@ function M.delete(name, opts)
 end
 
 -- Get a list of sessions
---@param no_read boolean: do not read/parse session files, just scan the directory
+--@param no_read boolean?: do not read/parse session files, just scan the directory
 --@return table: depending on `no_read` this will be:
 --  no_read=false: table of {filename: session_data} for all available sessions
 --  no_read=true: table of {filename: true}
@@ -213,6 +245,5 @@ function M.update_last_session(path)
     end
     vim.loop.fs_symlink(path:absolute(), link_path:absolute())
 end
-
 
 return M
