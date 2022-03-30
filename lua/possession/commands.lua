@@ -3,6 +3,7 @@ local M = {}
 local session = require('possession.session')
 local utils = require('possession.utils')
 local info = require('possession.info')
+local paths = require('possession.paths')
 
 local function complete_list(candidates, opts)
     opts = vim.tbl_extend('force', {
@@ -29,7 +30,7 @@ end
 -- Limits filesystem access by caching the results by time
 M.complete_session = complete_list(utils.throttle(function()
     local files = vim.tbl_keys(session.list { no_read = true })
-    return vim.tbl_map(utils.session_name_from_path, files)
+    return vim.tbl_map(paths.session_name, files)
 end, 3000))
 
 local function get_name(name)
@@ -39,7 +40,7 @@ local function get_name(name)
             utils.error('Cannot find last loaded session name')
             return nil
         end
-        name = utils.session_name_from_path(path)
+        name = paths.session_name(path)
     end
     return name
 end
@@ -71,7 +72,7 @@ function M.show(name)
         return
     end
 
-    local path = utils.session_path(name)
+    local path = paths.session(name)
     local data = vim.json.decode(path:read())
     data.file = path:absolute()
 

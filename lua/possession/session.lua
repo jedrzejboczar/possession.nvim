@@ -5,11 +5,12 @@ local config = require('possession.config')
 local cleanup = require('possession.cleanup')
 local utils = require('possession.utils')
 local plugins = require('possession.plugins')
+local paths = require('possession.paths')
 
 -- Get last loaded/saved session
 --@return string | nil: path to session file
 function M.last()
-    local link_path = utils.last_session_link_path()
+    local link_path = paths.last_session_link()
     local path = vim.loop.fs_readlink(link_path:absolute())
     if not path then
         return nil
@@ -61,22 +62,22 @@ function M.save(name, opts)
     -- Generate data for serialization
     local session_data = {
         name = name,
-        vimscript = opts.vimscript or utils.mksession(),
+        vimscript = opts.vimscript or M.mksession(),
         cwd = vim.fn.getcwd(),
         user_data = user_data,
         plugins = plugin_data,
     }
 
     -- Write to disk
-    local path = utils.session_path(name)
-    local short = utils.session_path_short(name)
+    local path = paths.session(name)
+    local short = paths.session_short(name)
     local commit = function(ok)
         if ok then
             vim.fn.mkdir(config.session_dir, 'p')
             path:write(vim.json.encode(session_data), 'w')
 
             -- Update link pointing to last session
-            utils.update_last_session(path)
+            M.update_last_session(path)
 
             utils.info('Saved as "%s"', short)
         else
@@ -108,7 +109,7 @@ function M.load(name_or_data)
     local session_data = name_or_data
     local path
     if type(name_or_data) == 'string' then
-        path = utils.session_path(name_or_data)
+        path = paths.session(name_or_data)
         session_data = vim.json.decode(path:read())
     else
         session_data = name_or_data
@@ -136,7 +137,7 @@ function M.load(name_or_data)
 
     -- Update link pointing to last session if loaded from file
     if path then
-        utils.update_last_session(path)
+        M.update_last_session(path)
     end
 
     plugins.after_load(session_data.name, plugin_data)
@@ -157,8 +158,8 @@ function M.delete(name, opts)
         no_confirm = { opts.no_confirm, 'boolean' },
     }
 
-    local path = utils.session_path(name)
-    local short = utils.session_path_short(name)
+    local path = paths.session(name)
+    local short = paths.session_short(name)
 
     if not path:exists() then
         utils.warn('Session not exists: "%s"', path:absolute())
@@ -198,7 +199,7 @@ function M.list(opts)
     }, opts or {})
 
     local sessions = {}
-    local glob = utils.session_path('*'):absolute()
+    local glob = paths.session('*'):absolute()
     for _, file in ipairs(vim.fn.glob(glob, true, true)) do
         local path = Path:new(file)
         local data = opts.no_read and vim.json.decode(path:read()) or path:absolute()
@@ -207,5 +208,23 @@ function M.list(opts)
 
     return sessions
 end
+
+-- Run :mksession! and return output as string by writing to a temporary file
+function M.mksession()
+    local tmp = vim.fn.tempname()
+    vim.cmd('mksession! ' .. tmp)
+    return Path:new(tmp):read()
+end
+
+-- Change the path to last file (make the symlink point to `path`)
+function M.update_last_session(path)
+    -- Must unlink if exists because fs_symlink won't overwrite existing links
+    local link_path = paths.last_session_link()
+    if link_path:exists() then
+        link_path:rm()
+    end
+    vim.loop.fs_symlink(path:absolute(), link_path:absolute())
+end
+
 
 return M
