@@ -50,7 +50,7 @@ function M.as_function(fn_or_value)
     if type(fn_or_value) == 'function' then
         return fn_or_value
     else
-        return function()
+        return function(...)
             return fn_or_value
         end
     end
