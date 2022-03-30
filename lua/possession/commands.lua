@@ -4,6 +4,7 @@ local session = require('possession.session')
 local utils = require('possession.utils')
 local info = require('possession.info')
 local paths = require('possession.paths')
+local migrate = require('possession.migrate')
 
 local function complete_list(candidates, opts)
     opts = vim.tbl_extend('force', {
@@ -102,6 +103,14 @@ function M.list(full)
         end
     end
     print(table.concat(lines, '\n'))
+end
+
+function M.migrate(path)
+    if vim.fn.getftype(path) == 'file' then
+        migrate.migrate(path)
+    else
+        migrate.migrate_dir(path)
+    end
 end
 
 return M

@@ -40,6 +40,11 @@ local function setup(opts)
                 '-nargs=0 -bang',
                 'lua require("possession.commands").list("<bang>" == "!")',
             },
+            [config.commands.migrate] = {
+                '-nargs=1 -complete=file',
+                'lua require("possession.commands").migrate(<f-args>)',
+
+            },
         }
     end
 end

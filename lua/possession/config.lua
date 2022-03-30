@@ -16,6 +16,7 @@ local function defaults()
             delete = 'PossessionDelete',
             show = 'PossessionShow',
             list = 'PossessionList',
+            migrate = 'PossessionMigrate',
         },
         hooks = {
             before_save = function(name) return {} end,
