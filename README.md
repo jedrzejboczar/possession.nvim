@@ -58,6 +58,7 @@ require('possession').setup {
         delete = 'PossessionDelete',
         show = 'PossessionShow',
         list = 'PossessionList',
+        migrate = 'PossessionMigrate',
     },
     hooks = {
         before_save = function(name) return {} end,
@@ -65,26 +66,35 @@ require('possession').setup {
         before_load = function(name, user_data) return user_data end,
         after_load = function(name, user_data) end,
     },
-    close_windows = {
-        hooks = {'before_save', 'before_load'},
-        preserve_layout = true,  -- or fun(win): boolean
-        match = {
-            floating = true,
-            buftype = {},
-            filetype = {},
-            custom = false,  -- or fun(win): boolean
+    plugins = {
+        close_windows = {
+            hooks = {'before_save', 'before_load'},
+            preserve_layout = true,  -- or fun(win): boolean
+            match = {
+                floating = true,
+                buftype = {'help'},
+                filetype = {},
+                custom = false,  -- or fun(win): boolean
+            },
         },
-    },
-    delete_hidden_buffers = {
-        hooks = {
-            'before_load',
-            vim.o.sessionoptions:match('buffer') and 'before_save',
+        delete_hidden_buffers = {
+            hooks = {
+                'before_load',
+                vim.o.sessionoptions:match('buffer') and 'before_save',
+            },
+            force = false,
         },
-        force = false,
+        nvim_tree = true,
     },
 }
 ```
 
+## Migrating
+
+To migrate existing vimscript-based sessions use the `:PossessionMigrate` command.
+It will try to generate session files in JSON format from given directory (or file).
+The files will be stored in `session_dir` so make sure to use different directories.
+Session name is assumed to be the filename without extension.
 
 ## Recommendations
 
