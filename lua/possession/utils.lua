@@ -72,4 +72,21 @@ function M.list_to_set(list)
     return set
 end
 
+-- Map elements from `list` and filter out nil values.
+function M.filter_map(fn, list)
+    local filter = function(elem)
+        return elem ~= nil
+    end
+    return vim.tbl_filter(filter, vim.tbl_map(fn, list))
+end
+
+-- Get a mapping from tabpage number to tabpage id (handle)
+function M.tab_num_to_id_map()
+    local mapping = {}
+    for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
+        mapping[vim.api.nvim_tabpage_get_number(tab)] = tab
+    end
+    return mapping
+end
+
 return M
