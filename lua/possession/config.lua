@@ -10,6 +10,7 @@ local function defaults()
     return {
         session_dir = (Path:new(vim.fn.stdpath('data')) / 'possession'):absolute(),
         silent = false,
+        load_silent = true,
         commands = {
             save = 'PossessionSave',
             load = 'PossessionLoad',
