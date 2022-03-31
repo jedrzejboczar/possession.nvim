@@ -180,7 +180,7 @@ function M.workspaces_with_shortcuts(workspace_specs, opts)
     end
 
     groups = vim.tbl_map(function(name)
-        return { name, with_shortcuts(prefixes[name], groups[name]) }
+        return { name, with_shortcuts(prefixes[name], groups[name] or {}) }
     end, workspace_order)
     others = with_shortcuts(opts.others_prefix, others)
 
