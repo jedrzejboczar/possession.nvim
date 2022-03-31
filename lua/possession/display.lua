@@ -1,5 +1,6 @@
 local M = {}
 
+local query = require('possession.query')
 local utils = require('possession.utils')
 
 -- FIXME: This seems hacky as hell and will most likely break some day...
@@ -20,6 +21,59 @@ local function patch_treesitter_injections(buf)
     parser._injection_query = new_query
 end
 
+-- Print a list of sessions as Vim message
+--@param sessions table?: optional list of sessions
+--@param vimscript boolean?: include vimscript in the output
+--@param user_data boolean?: include user_data in the output
+function M.echo_sessions(opts)
+    opts = vim.tbl_extend('force', {
+        sessions = nil,
+        vimscript = false,
+        user_data = true,
+    }, opts or {})
+
+    local sessions = opts.sessions or query.as_list()
+
+    local chunks = {}
+    local add = function(parts)
+        local as_chunk = function(part)
+            return type(part) == 'string' and { part } or part
+        end
+        vim.list_extend(chunks, vim.tbl_map(as_chunk, parts))
+    end
+
+    for i, data in ipairs(sessions) do
+        if i ~= 1 then
+            add { '\n' }
+        end
+
+        add { { 'Name: ', 'Title' }, data.name, '\n' }
+
+        if data.file then
+            add { { 'File: ', 'Title' }, data.file, '\n' }
+        end
+
+        add { { 'Cwd: ', 'Title' }, data.cwd, '\n' }
+
+        if opts.user_data then
+            local s = vim.inspect(data.user_data, { indent = '    ' })
+            local lines = utils.split_lines(s)
+            add { { 'User data: ', 'Title' }, '\n' }
+            for i = 2, #lines do
+                add { lines[i], '\n' }
+            end
+        end
+
+        if opts.vimscript then
+            -- Does not really make sense to list vimscript, at least join lines.
+            local line = data.vimscript:gsub('\n', '\\n')
+            add { { 'Vimscript: ', 'Title' }, line, '\n' }
+        end
+    end
+
+    vim.api.nvim_echo(chunks, false, {})
+end
+
 -- Display session data in given buffer.
 -- Data may optionally contain "file" key with path to session file.
 function M.in_buffer(data, buf)
@@ -38,16 +92,12 @@ function M.in_buffer(data, buf)
     local user_data = vim.inspect(data.user_data, { indent = '    ' })
     user_data = utils.split_lines(user_data)
     table.insert(lines, 'user_data = ' .. user_data[1])
-    for i = 2, #user_data do
-        table.insert(lines, user_data[i])
-    end
+    vim.list_extend(lines, user_data, 2)
 
     local plugin_data = vim.inspect(data.plugins, { indent = '    ' })
     plugin_data = utils.split_lines(plugin_data)
     table.insert(lines, 'plugin_data = ' .. plugin_data[1])
-    for i = 2, #plugin_data do
-        table.insert(lines, plugin_data[i])
-    end
+    vim.list_extend(lines, plugin_data, 2)
 
     table.insert(lines, '')
     table.insert(lines, 'vimscript = [[')

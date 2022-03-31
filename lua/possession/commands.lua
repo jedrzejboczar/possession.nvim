@@ -85,25 +85,7 @@ function M.show(name)
 end
 
 function M.list(full)
-    local sessions = session.list()
-    local lines = {}
-    for file, data in pairs(sessions) do
-        table.insert(lines, 'Name: ' .. data.name)
-        table.insert(lines, '  File: ' .. file)
-        table.insert(lines, '  Cwd: ' .. data.cwd)
-
-        table.insert(lines, '  User data:')
-        local user_data = vim.inspect(data.user_data, { indent = '    ' })
-        for _, line in ipairs(utils.split_lines(user_data)) do
-            table.insert(lines, '  ' .. line)
-        end
-
-        if full then
-            -- Does not really make sense to list vimscript, at least join lines.
-            table.insert(lines, '  Vimscript: ' .. data.vimscript:gsub('\n', '\\n'))
-        end
-    end
-    print(table.concat(lines, '\n'))
+    display.echo_sessions { vimscript = full }
 end
 
 function M.migrate(path)
