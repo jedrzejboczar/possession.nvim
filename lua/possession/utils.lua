@@ -87,6 +87,15 @@ function M.filter_map(fn, list)
     return vim.tbl_filter(filter, vim.tbl_map(fn, list))
 end
 
+-- Return new table by applying fn as: {key: value} -> {key: fn(value, key)}
+function M.tbl_map_values(tbl, fn)
+    local new = {}
+    for key, val in pairs(tbl) do
+        new[key] = fn(val, key)
+    end
+    return new
+end
+
 function M.split_lines(s, trimempty)
     return vim.split(s, '\n', { plain = true, trimempty = trimempty })
 end
