@@ -26,7 +26,7 @@ end
 
 -- Display session data in given buffer.
 -- Data may optionally contain "file" key with path to session file.
-function M.display_session(data, buf)
+function M.in_buffer(data, buf)
     -- (a bit hacky) way to easily get syntax highlighting - just format everything
     -- as valid Lua code and set filetype.
 

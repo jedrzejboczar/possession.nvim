@@ -2,7 +2,7 @@ local M = {}
 
 local session = require('possession.session')
 local utils = require('possession.utils')
-local info = require('possession.info')
+local display = require('possession.display')
 local paths = require('possession.paths')
 local migrate = require('possession.migrate')
 
@@ -79,7 +79,7 @@ function M.show(name)
 
     local buf = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_buf_set_option(buf, 'bufhidden', 'wipe')
-    info.display_session(data, buf)
+    display.in_buffer(data, buf)
     vim.api.nvim_win_set_buf(0, buf)
 end
 

@@ -7,7 +7,7 @@ local pickers = require('telescope.pickers')
 local previewers = require('telescope.previewers')
 
 local session = require('possession.session')
-local info = require('possession.info')
+local display = require('possession.display')
 
 local function session_previewer(opts)
     opts = opts or {}
@@ -21,7 +21,7 @@ local function session_previewer(opts)
 
         define_preview = function(self, entry, status)
             if self.state.bufname ~= entry.value.name then
-                info.display_session(entry.value, self.state.bufnr)
+                display.in_buffer(entry.value, self.state.bufnr)
             end
         end,
     }
