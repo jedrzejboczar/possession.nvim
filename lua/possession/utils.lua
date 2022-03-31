@@ -87,6 +87,10 @@ function M.filter_map(fn, list)
     return vim.tbl_filter(filter, vim.tbl_map(fn, list))
 end
 
+function M.split_lines(s, trimempty)
+    return vim.split(s, '\n', { plain = true, trimempty = trimempty })
+end
+
 -- Get a mapping from tabpage number to tabpage id (handle)
 function M.tab_num_to_id_map()
     local mapping = {}

@@ -3,6 +3,7 @@ local M = {}
 local Path = require('plenary.path')
 local session = require('possession.session')
 local paths = require('possession.paths')
+local utils = require('possession.utils')
 
 -- Migrate mksession-based file to JSON format by loading and saving the session
 function M.migrate(vimscript_path, opts)
@@ -16,7 +17,7 @@ function M.migrate(vimscript_path, opts)
 
     -- Try to retrieve cwd from vimscript, fall back to getcwd
     local cwd
-    for _, line in ipairs(vim.split(vimscript, '\n', { plain = true })) do
+    for _, line in ipairs(utils.split_lines(vimscript)) do
         local match = line:match('^cd (.*)$')
         if match then
             cwd = match

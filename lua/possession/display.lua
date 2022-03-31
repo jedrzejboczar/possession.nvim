@@ -2,10 +2,6 @@ local M = {}
 
 local utils = require('possession.utils')
 
-local function split_lines(s, trimempty)
-    return vim.split(s, '\n', { plain = true, trimempty = trimempty })
-end
-
 -- FIXME: This seems hacky as hell and will most likely break some day...
 -- Get the lua parser for given buffer and replace its injection query
 -- with one that will highlight vimscript inside the string stored in
@@ -40,14 +36,14 @@ function M.in_buffer(data, buf)
     table.insert(lines, '')
 
     local user_data = vim.inspect(data.user_data, { indent = '    ' })
-    user_data = split_lines(user_data)
+    user_data = utils.split_lines(user_data)
     table.insert(lines, 'user_data = ' .. user_data[1])
     for i = 2, #user_data do
         table.insert(lines, user_data[i])
     end
 
     local plugin_data = vim.inspect(data.plugins, { indent = '    ' })
-    plugin_data = split_lines(plugin_data)
+    plugin_data = utils.split_lines(plugin_data)
     table.insert(lines, 'plugin_data = ' .. plugin_data[1])
     for i = 2, #plugin_data do
         table.insert(lines, plugin_data[i])
@@ -55,7 +51,7 @@ function M.in_buffer(data, buf)
 
     table.insert(lines, '')
     table.insert(lines, 'vimscript = [[')
-    local vimscript = split_lines(data.vimscript, true)
+    local vimscript = utils.split_lines(data.vimscript, true)
     vimscript = vim.tbl_map(function(line)
         return '    ' .. line
     end, vimscript)

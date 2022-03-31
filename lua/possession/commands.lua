@@ -5,6 +5,7 @@ local utils = require('possession.utils')
 local display = require('possession.display')
 local paths = require('possession.paths')
 local migrate = require('possession.migrate')
+local utils = require('possession.utils')
 
 local function complete_list(candidates, opts)
     opts = vim.tbl_extend('force', {
@@ -93,7 +94,7 @@ function M.list(full)
 
         table.insert(lines, '  User data:')
         local user_data = vim.inspect(data.user_data, { indent = '    ' })
-        for _, line in ipairs(vim.split(user_data, '\n', { plain = true })) do
+        for _, line in ipairs(utils.split_lines(user_data)) do
             table.insert(lines, '  ' .. line)
         end
 
