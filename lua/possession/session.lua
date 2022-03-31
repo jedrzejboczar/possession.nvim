@@ -208,7 +208,7 @@ function M.delete(name, opts)
     end
 end
 
--- Get a list of sessions
+-- Get a list of sessions as map-like table
 --@param no_read boolean?: do not read/parse session files, just scan the directory
 --@return table: depending on `no_read` this will be:
 --  no_read=false: table of {filename: session_data} for all available sessions
