@@ -11,6 +11,7 @@ Flexible session management for Neovim.
 * User hooks before/after save/load
 * Uses good old `:mksession` under the hood
 * Out of the box [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) integration
+* Example integration with [alpha-nvim](https://github.com/goolord/alpha-nvim)
 
 ## About
 
@@ -131,3 +132,56 @@ to "make" the session. See `:help 'sessionoptions'` for available options, some 
   default of *not* including this one)
 * `buffers` - While this plugin offers `delete_hidden_buffers`, I'd also suggest using
   `set sessionoptions-=buffers` to just exclude hidden buffers when saving session.
+
+### Startup screen
+
+Currently there is no out-of-the-box integration with any startup screen, PRs welcome.
+
+The `require('possession.query')` module provides helper functions for querying available sessions.
+It can be helpful when generating a startup screen. Take a look at the helper function
+`workspaces_with_shortcuts` which implements all the burden of splitting sessions into workspaces
+based on root directories specified by the user and will generate shortcuts for each group.
+The resulting table can be used when generating a startup screen.
+
+When using [alpha-nvim](https://github.com/goolord/alpha-nvim) there is an additional helper
+function that generates a layout group that can be included in the startup screen.
+Example usage:
+
+```lua
+local query = require('possession.query')
+local workspaces = {
+    {
+        'Workspace A',  -- title
+        'a',            -- shortcuts prefix
+        {
+            '/root/directory/a',
+            '/other/root/directory/',
+        },
+    }, {
+        'Workspace B',
+        'b',
+        '/root/directory/b',
+    }
+}
+-- e.g. https://github.com/goolord/alpha-nvim/blob/8a1477d8b99a931530f3cfb70f6805b759bebbf7/lua/alpha/themes/startify.lua#L28
+local create_button = function(shortcut, text, keymap)
+    -- ...
+end
+
+local get_layout = function()
+    return query.alpha_workspace_layout(workspaces, create_button, {
+        others_name = 'Sessions Without Workspace',
+    })
+end
+
+-- use with the rest of sections for alpha.nvim, with throttling to avoid reading files on each redraw
+local utils = require('possession.utils')
+local sections = {
+    -- ...
+    sessions = {
+        type = 'group',
+        val = utils.throttle(get_layout, 5000),
+    },
+    -- ...
+}
+```
