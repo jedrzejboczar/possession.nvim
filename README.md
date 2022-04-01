@@ -1,3 +1,5 @@
+[![Lint](https://github.com/jedrzejboczar/possession.nvim/actions/workflows/lint.yml/badge.svg)](https://github.com/jedrzejboczar/possession.nvim/actions/workflows/lint.yml)
+
 # possession.nvim
 
 Flexible session management for Neovim.
