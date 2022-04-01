@@ -16,11 +16,11 @@ end
 local function match_window(match, win)
     local buf = vim.api.nvim_win_get_buf(win)
     return (
-            (match.floating and is_floating(win))
-            or match_buf_opt(buf, 'buftype', match.buftype)
-            or match_buf_opt(buf, 'filetype', match.filetype)
-            or utils.as_function(match.custom)(win)
-        )
+        (match.floating and is_floating(win))
+        or match_buf_opt(buf, 'buftype', match.buftype)
+        or match_buf_opt(buf, 'filetype', match.filetype)
+        or utils.as_function(match.custom)(win)
+    )
 end
 
 -- Close all windows that match predicates.
