@@ -8,17 +8,14 @@ local previewers = require('telescope.previewers')
 
 local session = require('possession.session')
 local display = require('possession.display')
+local utils = require('possession.utils')
 
 local function session_previewer(opts)
-    opts = opts or {}
     return previewers.new_buffer_previewer {
         title = 'Session Preview',
-        teardown = function(self) end,
-
         get_buffer_by_name = function(_, entry)
             return entry.value.name
         end,
-
         define_preview = function(self, entry, status)
             if self.state.bufname ~= entry.value.name then
                 display.in_buffer(entry.value, self.state.bufnr)

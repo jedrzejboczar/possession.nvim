@@ -59,8 +59,8 @@ function M.echo_sessions(opts)
             local s = vim.inspect(data.user_data, { indent = '    ' })
             local lines = utils.split_lines(s)
             add { { 'User data: ', 'Title' }, '\n' }
-            for i = 2, #lines do
-                add { lines[i], '\n' }
+            for l = 2, #lines do
+                add { lines[l], '\n' }
             end
         end
 

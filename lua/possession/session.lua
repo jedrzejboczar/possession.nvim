@@ -124,7 +124,7 @@ function M.load(name_or_data)
     vim.validate { name_or_data = { name_or_data, { 'string', 'table' } } }
 
     -- Load session data
-    local session_data = name_or_data
+    local session_data
     local path
     if type(name_or_data) == 'string' then
         path = paths.session(name_or_data)

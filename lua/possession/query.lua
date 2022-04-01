@@ -1,6 +1,5 @@
 local M = {}
 
-local Path = require('plenary.path')
 local session = require('possession.session')
 local utils = require('possession.utils')
 local config = require('possession.config')
@@ -53,7 +52,7 @@ function M.group_by(key, sessions)
     for _, s in ipairs(sessions) do
         local k = key(s)
         -- Prevent potential errors
-        assert(type(v) ~= 'function', 'Key function should not be a higher-order function')
+        assert(type(k) ~= 'function', 'Key function should not be a higher-order function')
         if k then
             if not groups[k] then
                 groups[k] = {}

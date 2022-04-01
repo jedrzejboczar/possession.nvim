@@ -1,6 +1,5 @@
 local M = {}
 
-local fun = require('plenary.fun')
 local plugins = require('possession.plugins')
 local utils = require('possession.utils')
 

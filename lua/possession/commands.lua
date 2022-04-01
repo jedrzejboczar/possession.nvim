@@ -1,7 +1,6 @@
 local M = {}
 
 local session = require('possession.session')
-local utils = require('possession.utils')
 local display = require('possession.display')
 local paths = require('possession.paths')
 local migrate = require('possession.migrate')
