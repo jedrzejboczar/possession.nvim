@@ -57,7 +57,7 @@ function M.as_function(fn_or_value)
 end
 
 function M.bind(fn, ...)
-    local args = {...}
+    local args = { ... }
     return function(...)
         return fn(unpack(args), ...)
     end

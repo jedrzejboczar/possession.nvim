@@ -131,7 +131,7 @@ function M.workspaces_with_shortcuts(workspace_specs, opts)
         sessions = nil,
         others_prefix = 's',
         sort_by = 'name',
-        map_session = nil
+        map_session = nil,
     }, opts or {})
 
     vim.validate {
@@ -160,9 +160,10 @@ function M.workspaces_with_shortcuts(workspace_specs, opts)
 
     local with_shortcuts = function(prefix, sessions)
         if opts.sort_by then
-            local get = type(opts.sort_by) == 'function' and opts.sort_by or function(s)
-                return s[opts.sort_by]
-            end
+            local get = type(opts.sort_by) == 'function' and opts.sort_by
+                or function(s)
+                    return s[opts.sort_by]
+                end
             table.sort(sessions, function(a, b)
                 return get(a) < get(b)
             end)
@@ -198,7 +199,7 @@ end
 function M.alpha_workspace_layout(workspace_specs, create_button, opts)
     opts = vim.tbl_extend('force', {
         title_highlight = 'Type',
-        others_name = 'Sessions'
+        others_name = 'Sessions',
     }, opts or {})
 
     vim.validate {
@@ -211,7 +212,7 @@ function M.alpha_workspace_layout(workspace_specs, create_button, opts)
     local workspaces, others = M.workspaces_with_shortcuts(workspace_specs, {
         map_session = function(s)
             return s.name
-        end
+        end,
     })
 
     -- Transform a sessions+shortcuts into alpha.nvim buttons
@@ -228,11 +229,11 @@ function M.alpha_workspace_layout(workspace_specs, create_button, opts)
         return {
             type = 'group',
             val = {
-            { type = 'padding', val = 1 },
-            { type = 'text', val = name, opts = { hl = opts.title_highlight } },
-            { type = 'padding', val = 1 },
-            { type = 'group', val = to_buttons(sessions_with_shortcuts) },
-            }
+                { type = 'padding', val = 1 },
+                { type = 'text', val = name, opts = { hl = opts.title_highlight } },
+                { type = 'padding', val = 1 },
+                { type = 'group', val = to_buttons(sessions_with_shortcuts) },
+            },
         }
     end
 

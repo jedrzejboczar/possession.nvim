@@ -43,7 +43,6 @@ local function setup(opts)
             [config.commands.migrate] = {
                 '-nargs=1 -complete=file',
                 'lua require("possession.commands").migrate(<f-args>)',
-
             },
         }
     end

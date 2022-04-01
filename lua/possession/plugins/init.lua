@@ -6,7 +6,7 @@ local config = require('possession.config')
 local DEBUG = false
 local debug = function(...)
     if DEBUG then
-        local args = {...}
+        local args = { ... }
         if type(args[1]) == 'function' then
             args = args[1](select(2, ...))
         end
