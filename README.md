@@ -2,7 +2,7 @@
 
 Flexible session management for Neovim.
 
-## Features:
+## Features
 
 * Save/load Vim sessions
 * Keep track of last used session
@@ -13,7 +13,7 @@ Flexible session management for Neovim.
 * Out of the box [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) integration
 * Example integration with [alpha-nvim](https://github.com/goolord/alpha-nvim)
 
-## About
+## Overview
 
 This is yet another session management plugin for Neovim.
 
@@ -46,8 +46,14 @@ Or with other package managers/manually, but make sure
 
 ## Configuration
 
+**Detailed documentation**
+
+See [doc/possession.txt](./doc/possession.txt).
+
+**Quick start**
+
 Call `require('possession').setup { ... }` somewhere in your `init.lua`.
-See [doc/possession.txt](./doc/possession.txt) for details, the default configuartion is:
+The default configuration is:
 
 ```lua
 require('possession').setup {
@@ -90,14 +96,14 @@ require('possession').setup {
 }
 ```
 
+## Recommendations
+
 ## Migrating
 
 To migrate existing vimscript-based sessions use the `:PossessionMigrate` command.
 It will try to generate session files in JSON format from given directory (or file).
 The files will be stored in `session_dir` so make sure to use different directories.
 Session name is assumed to be the filename without extension.
-
-## Recommendations
 
 ### Commands
 
@@ -114,15 +120,6 @@ require('possession').setup {
 }
 ```
 
-### Telescope
-
-```lua
-require('telescope').load_extension('possession')
-```
-
-Then use `:Telescope possession list` or `require('telescope').extensions.possession.list()`
-
-
 ### Session options
 
 Under the hood this plugin uses the command `:mksession` which in turn uses `'sessionoptions'`
@@ -133,7 +130,18 @@ to "make" the session. See `:help 'sessionoptions'` for available options, some 
 * `buffers` - While this plugin offers `delete_hidden_buffers`, I'd also suggest using
   `set sessionoptions-=buffers` to just exclude hidden buffers when saving session.
 
-### Startup screen
+## Telescope
+
+```lua
+require('telescope').load_extension('possession')
+```
+
+Then use `:Telescope possession list` or `require('telescope').extensions.possession.list()`
+The default action will load selected session.
+
+![telescope](./img/telescope.png)
+
+## Startup screen
 
 Currently there is no out-of-the-box integration with any startup screen, PRs welcome.
 
@@ -185,3 +193,5 @@ local sections = {
     -- ...
 }
 ```
+
+![alpha](./img/alpha.png)
