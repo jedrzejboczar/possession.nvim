@@ -1,4 +1,4 @@
-name: Linting and style checking
+name: Lint
 
 on:
   push:
