@@ -173,6 +173,17 @@ plugins.delete_hidden_buffers.force~
     WARNING: this may lead to loosing unsaved changes. Instead of using this
     option consider removing `buffers` from 'sessionoptions'.
 
+                                                        *possession-nvim-tree*
+
+Saves nvim-tree explorer windows and restores them when loading the session.
+Currently no configuration options beside enabling/disabling are available.
+
+                                                            *possession-tabby*
+
+Saves tabby.nvim tab page names when saving the sessions and restores them
+when loading.
+Currently no configuration options beside enabling/disabling are available.
+
 
 PLUGINS                                                   *possession-plugins*
 

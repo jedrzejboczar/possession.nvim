@@ -7,6 +7,7 @@ local plugins = {
     'close_windows',
     'delete_hidden_buffers',
     'nvim_tree',
+    'tabby',
 }
 
 local function req(plugin)

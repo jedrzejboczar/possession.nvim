@@ -96,6 +96,7 @@ require('possession').setup {
             force = false,
         },
         nvim_tree = true,
+        tabby = true,
     },
 }
 ```

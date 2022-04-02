@@ -45,6 +45,7 @@ local function defaults()
                 force = false,
             },
             nvim_tree = true,
+            tabby = true,
         },
     }
 end
