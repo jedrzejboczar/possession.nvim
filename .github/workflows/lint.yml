@@ -30,3 +30,11 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         args: --check .
+
+  readme_config:
+    name: Readme config
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Verify that defaults in README and docs are the same
+      run: scripts/check-readme-config.sh lua/possession/config.lua README.md
