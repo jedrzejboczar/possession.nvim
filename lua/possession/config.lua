@@ -31,7 +31,7 @@ local function defaults()
                 preserve_layout = true,  -- or fun(win): boolean
                 match = {
                     floating = true,
-                    buftype = {'help'},
+                    buftype = {},
                     filetype = {},
                     custom = false,  -- or fun(win): boolean
                 },
