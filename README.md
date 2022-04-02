@@ -61,6 +61,8 @@ The default configuration is:
 require('possession').setup {
     session_dir = (Path:new(vim.fn.stdpath('data')) / 'possession'):absolute(),
     silent = false,
+    load_silent = true,
+    debug = false,
     commands = {
         save = 'PossessionSave',
         load = 'PossessionLoad',
@@ -81,7 +83,7 @@ require('possession').setup {
             preserve_layout = true,  -- or fun(win): boolean
             match = {
                 floating = true,
-                buftype = {'help'},
+                buftype = {},
                 filetype = {},
                 custom = false,  -- or fun(win): boolean
             },
