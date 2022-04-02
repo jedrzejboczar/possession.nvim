@@ -1,18 +1,7 @@
 local M = {}
 
 local config = require('possession.config')
-
--- TODO: test version with a function
-local DEBUG = false
-local debug = function(...)
-    if DEBUG then
-        local args = { ... }
-        if type(args[1]) == 'function' then
-            args = args[1](select(2, ...))
-        end
-        vim.notify(string.format(unpack(args)), vim.log.levels.DEBUG)
-    end
-end
+local utils = require('possession.utils')
 
 local plugins = {
     'close_windows',
@@ -54,7 +43,7 @@ end
 local function call_plugin(hook, p, name, plugin_data, aborted)
     local c = get_config(p)
     local pd = plugin_data or {}
-    debug(
+    utils.debug(
         '%s: %s(%s)',
         hook,
         p,
@@ -66,7 +55,7 @@ local function call_plugin(hook, p, name, plugin_data, aborted)
         }
     )
     local data = req(p)[hook](c, name, pd, aborted)
-    debug('%s: %s => %s', hook, p, vim.inspect(data))
+    utils.debug('%s: %s => %s', hook, p, vim.inspect(data))
     return data
 end
 

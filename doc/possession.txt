@@ -64,6 +64,10 @@ load_silent~
     `boolean`
     Suppress Vim output when sourcing vimscript that loads the session.
 
+debug~
+    `boolean`
+    Show debug logs.
+
 commands~
     `table | nil`
     If set to falsy value then no commands will be created.

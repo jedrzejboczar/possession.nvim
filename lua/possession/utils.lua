@@ -2,6 +2,17 @@ local M = {}
 
 local config = require('possession.config')
 
+function M.debug(...)
+    if config.debug then
+        local args = { ... }
+        -- TODO: test version with a function
+        if type(args[1]) == 'function' then
+            args = args[1](select(2, ...))
+        end
+        vim.notify(string.format(unpack(args)), vim.log.levels.DEBUG)
+    end
+end
+
 function M.info(...)
     if not config.silent then
         vim.notify(string.format(...))
