@@ -59,6 +59,10 @@ function M.before_save(opts, name)
 end
 
 function M.after_save(opts, name, plugin_data, aborted)
+    if not has_nvim_tree then
+        return
+    end
+
     if plugin_data and plugin_data.tabs then
         open_tree(plugin_data.tabs)
     end
