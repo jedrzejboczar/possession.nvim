@@ -28,8 +28,8 @@ end
 -- and the second one is a list of non-matching sessions (ones for which key was nil)
 function M.group_by(key, sessions)
     vim.validate {
-        key = { key, { 'string', 'function' } },
-        sessions = { sessions, { 'table', 'nil' } },
+        key = { key, utils.is_type { 'string', 'function' } },
+        sessions = { sessions, utils.is_type { 'table', 'nil' } },
     }
 
     sessions = sessions or M.as_list()
@@ -135,10 +135,10 @@ function M.workspaces_with_shortcuts(workspace_specs, opts)
 
     vim.validate {
         workspace_specs = { workspace_specs, 'table' },
-        sessions = { opts.sessions, { 'nil', 'table' } },
+        sessions = { opts.sessions, utils.is_type { 'nil', 'table' } },
         others_prefix = { opts.others_prefix, 'string' },
-        sort_by = { opts.sort_by, { 'nil', 'string' } },
-        map_session = { opts.map_session, { 'nil', 'function' } },
+        sort_by = { opts.sort_by, utils.is_type { 'nil', 'string' } },
+        map_session = { opts.map_session, utils.is_type { 'nil', 'function' } },
     }
 
     local workspaces = {} -- {name: root_dir} for by_workspace

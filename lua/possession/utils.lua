@@ -120,4 +120,16 @@ function M.tab_num_to_id_map()
     return mapping
 end
 
+-- Return function that checks if values have given type/types.
+-- Used to support older versions of vim.validate that only accept single type or a validator function.
+-- TODO: create a vim.validate wrapper instead of having to remember about 0.6 compatibility
+function M.is_type(types)
+    if type(types) == 'string' then
+        types = { types }
+    end
+    return function(value)
+        return vim.tbl_contains(types, type(value))
+    end
+end
+
 return M

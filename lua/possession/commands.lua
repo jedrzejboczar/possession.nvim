@@ -11,7 +11,7 @@ local function complete_list(candidates, opts)
         sort = true,
     }, opts or {})
 
-    vim.validate { candidates = { candidates, { 'table', 'function' } } }
+    vim.validate { candidates = { candidates, utils.is_type { 'table', 'function' } } }
 
     local get_candidates = function()
         local list = type(candidates) == 'function' and candidates() or candidates

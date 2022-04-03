@@ -41,10 +41,10 @@ function M.save(name, opts)
 
     vim.validate {
         name = { name, 'string' },
-        vimscript = { opts.vimscript, { 'nil', 'string' } },
+        vimscript = { opts.vimscript, utils.is_type { 'nil', 'string' } },
         no_confirm = { opts.no_confirm, 'boolean' },
-        callback = { opts.callback, { 'function', 'nil' } },
-        cwd = { opts.cwd, { 'string', 'nil' } },
+        callback = { opts.callback, utils.is_type { 'function', 'nil' } },
+        cwd = { opts.cwd, utils.is_type { 'string', 'nil' } },
     }
 
     local vimscript
@@ -121,7 +121,7 @@ end
 --@param name_or_data string|table: name if string, else a table with raw
 -- data that will be saved as the session file in JSON format.
 function M.load(name_or_data)
-    vim.validate { name_or_data = { name_or_data, { 'string', 'table' } } }
+    vim.validate { name_or_data = { name_or_data, utils.is_type { 'string', 'table' } } }
 
     -- Load session data
     local session_data
@@ -171,7 +171,7 @@ function M.delete(name, opts)
     vim.validate {
         name = { name, 'string' },
         no_confirm = { opts.no_confirm, 'boolean' },
-        callback = { opts.callback, { 'function', 'nil' } },
+        callback = { opts.callback, utils.is_type { 'function', 'nil' } },
     }
 
     local path = paths.session(name)
