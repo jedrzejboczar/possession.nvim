@@ -132,4 +132,22 @@ function M.is_type(types)
     end
 end
 
+-- Clear the prompt (whatever printed on the command line)
+function M.clear_prompt()
+    vim.api.nvim_command('normal! :')
+end
+
+-- Ask the user a y/n question
+function M.prompt_yes_no(prompt)
+    local is_confirmed = false
+    print(prompt)
+    local ans = vim.fn.nr2char(vim.fn.getchar())
+    if ans:match "^y" then
+        is_confirmed = true
+    end
+    M.clear_prompt()
+    return is_confirmed
+end
+
+
 return M
