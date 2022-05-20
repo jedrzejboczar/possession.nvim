@@ -62,6 +62,8 @@ require('possession').setup {
     session_dir = (Path:new(vim.fn.stdpath('data')) / 'possession'):absolute(),
     silent = false,
     load_silent = true,
+    autosave = false,
+    tmp_session = false,
     debug = false,
     commands = {
         save = 'PossessionSave',
