@@ -99,6 +99,7 @@ require('possession').setup {
         },
         nvim_tree = true,
         tabby = true,
+        delete_buffers = true,
     },
 }
 ```

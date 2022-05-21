@@ -48,6 +48,7 @@ local function defaults()
             },
             nvim_tree = true,
             tabby = true,
+            delete_buffers = true,
         },
     }
 end

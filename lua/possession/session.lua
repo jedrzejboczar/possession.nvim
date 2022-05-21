@@ -120,23 +120,22 @@ function M.save(name, opts)
 end
 
 function M.autosave()
-  if config.autosave == false then
-      return
-  end
-  if M.session_name then
-      M.save(M.session_name, { no_confirm = true })
-  elseif config.tmp_session then -- Save as tmp when session is not loaded
+    if config.autosave == false then
+        return
+    end
+    if M.session_name then
+        M.save(M.session_name, { no_confirm = true })
+    elseif config.tmp_session then -- Save as tmp when session is not loaded
+        -- Skip scratch buffer e.g. startscreen
+        local unscratch_buffers = vim.tbl_filter(function(buf)
+            return 'nofile' ~= vim.api.nvim_buf_get_option(buf, 'buftype')
+        end, vim.api.nvim_list_bufs())
+        if not unscratch_buffers or not next(unscratch_buffers) then
+            return
+        end
 
-      -- Skip scratch buffer e.g. startscreen
-      local unscratch_buffers = vim.tbl_filter(function (buf)
-          return "nofile" ~= vim.api.nvim_buf_get_option(buf, "buftype")
-      end, vim.api.nvim_list_bufs())
-      if not unscratch_buffers or not next(unscratch_buffers) then
-          return
-      end
-
-      M.save("tmp", { no_confirm = true })
-  end
+        M.save('tmp', { no_confirm = true })
+    end
 end
 
 -- Load session by name (or from raw data)
