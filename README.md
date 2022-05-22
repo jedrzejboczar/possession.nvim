@@ -12,6 +12,7 @@ Flexible session management for Neovim.
 * Store arbitrary data in the session file
 * User hooks before/after save/load
 * Uses good old `:mksession` under the hood
+* Configurable automatic save
 * Out of the box [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) integration
 * Example integration with [alpha-nvim](https://github.com/goolord/alpha-nvim)
 
@@ -153,6 +154,13 @@ Then use `:Telescope possession list` or `require('telescope').extensions.posses
 The default action will load selected session.
 
 ![telescope](./img/telescope.png)
+
+## Auto-save
+
+It is possible to automatically save the current session (or create a tmp session) when quitting
+Neovim or loading a different session. This behavior is disabled by default, but can be enabled
+using the `autosave.*` configuration options. Check [doc/possession.txt](./doc/possession.txt)
+for details.
 
 ## Startup screen
 

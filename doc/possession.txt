@@ -77,6 +77,31 @@ commands.*~
     Allows to change the name of the `:Possession*` commands (e.g.
     `commands.save = 'SSave'`) or disable the command if set to a falsy value.
 
+                                                         *possession-autosave*
+autosave.current~
+    `boolean | function(name: string): boolean`
+    Automatically save current session if it exists. If no session has been
+    loaded yet, then `autosave.tmp` setting is checked.
+
+autosave.tmp~
+    `boolean | function(name: string): boolean`
+    Automatically save a temporary session if no session has been loaded yet.
+
+autosave.tmp_name~
+    `string`
+    Name used for the temporary session when `autosave.tmp` is enabled.
+
+autosave.on_load~
+    `boolean`
+    Run auto-save when loading another session, e.g. when using the
+    `PossessionLoad` command.
+
+autosave.on_quit~
+    `boolean`
+    Run auto-save when quitting Neovim during the |VimLeavePre| autocmd.
+    Note: to properly save current session when quitting, use |:quitall|, this
+    way the current window layout will be preserved.
+
                                                             *possession-hooks*
 hooks.before_save~
     `function(name: string) => table | nil`
