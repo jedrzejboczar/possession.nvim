@@ -11,9 +11,14 @@ local function defaults()
         session_dir = (Path:new(vim.fn.stdpath('data')) / 'possession'):absolute(),
         silent = false,
         load_silent = true,
-        autosave = false,
-        tmp_session = false,
         debug = false,
+        autosave = {
+            current = false,  -- or fun(name): boolean
+            tmp = false,  -- or fun(): boolean
+            tmp_name = 'tmp',
+            on_load = true,
+            on_quit = true,
+        },
         commands = {
             save = 'PossessionSave',
             load = 'PossessionLoad',
