@@ -106,11 +106,9 @@ function M.save(name, opts)
         end
     end
 
-    -- ask for user configrmation if required
+    -- ask for user confirmation if required
     if path:exists() and not opts.no_confirm then
-        if utils.prompt_yes_no(string.format('Overwrite session "%s"? y/n', name)) then
-          commit(true)
-        end
+        utils.prompt_yes_no(string.format('Overwrite session "%s"?', name), commit)
     else
         commit(true)
     end
@@ -198,11 +196,9 @@ function M.delete(name, opts)
         end
     end
 
-    -- ask for user configrmation if required
+    -- ask for user confirmation if required
     if not opts.no_confirm then
-        if utils.prompt_yes_no(string.format('Delete session "%s"? y/n', name)) then
-          commit(true)
-        end
+        utils.prompt_yes_no(string.format('Delete session "%s"?', name), commit)
     else
         commit(true)
     end

@@ -12,6 +12,7 @@ local function defaults()
         silent = false,
         load_silent = true,
         debug = false,
+        prompt_no_cr = false,
         commands = {
             save = 'PossessionSave',
             load = 'PossessionLoad',
