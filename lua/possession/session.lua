@@ -181,6 +181,12 @@ function M.load(name_or_data)
     end
     M.session_name = session_data.name
 
+    if session_data.name == config.autosave.tmp_name then
+        M.session_name = nil
+    else
+        M.session_name = session_data.name
+    end
+
     plugins.after_load(session_data.name, plugin_data)
     config.hooks.after_load(session_data.name, user_data)
 
