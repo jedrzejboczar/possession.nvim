@@ -109,11 +109,9 @@ function M.save(name, opts)
         end
     end
 
+    -- ask for user confirmation if required
     if path:exists() and not opts.no_confirm then
-        local prompt = string.format('File "%s" exists, overwrite? [yN] ', short)
-        vim.ui.input({ prompt = prompt }, function(answer)
-            commit(vim.tbl_contains({ 'y', 'yes' }, answer and answer:lower()))
-        end)
+        utils.prompt_yes_no(string.format('Overwrite session "%s"?', name), commit)
     else
         commit(true)
     end
@@ -231,11 +229,9 @@ function M.delete(name, opts)
         end
     end
 
+    -- ask for user confirmation if required
     if not opts.no_confirm then
-        local prompt = string.format('File "%s" exists, delete? [yN] ', short)
-        vim.ui.input({ prompt = prompt }, function(answer)
-            commit(vim.tbl_contains({ 'y', 'yes' }, answer and answer:lower()))
-        end)
+        utils.prompt_yes_no(string.format('Delete session "%s"?', name), commit)
     else
         commit(true)
     end

@@ -68,6 +68,13 @@ debug~
     `boolean`
     Show debug logs.
 
+prompt_no_cr~
+    `boolean`
+    When this option is set to true, yes/no prompts will use |getchar()| so
+    that there is no need to hit enter (`<CR>`) - just hit `y` or `n`. When
+    `prompt_no_cr = false`, `vim.ui.input` is used and you must hit enter to
+    confirm the answer.
+
 commands~
     `table | nil`
     If set to falsy value then no commands will be created.

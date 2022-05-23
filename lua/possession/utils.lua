@@ -132,4 +132,26 @@ function M.is_type(types)
     end
 end
 
+-- Clear the prompt (whatever printed on the command line)
+function M.clear_prompt()
+    vim.api.nvim_command('normal! :')
+end
+
+-- Ask the user a y/n question
+--@param callback function(boolean): receives true on "yes" and false on "no"
+function M.prompt_yes_no(prompt, callback)
+    prompt = string.format('%s [y/N] ', prompt)
+    if config.prompt_no_cr then -- use getchar so no <cr> is required
+        print(prompt)
+        local ans = vim.fn.nr2char(vim.fn.getchar())
+        local is_confirmed = ans:lower():match('^y')
+        M.clear_prompt()
+        callback(is_confirmed)
+    else -- use vim.ui.input
+        vim.ui.input({ prompt = prompt }, function(answer)
+            callback(vim.tbl_contains({ 'y', 'yes' }, answer and answer:lower()))
+        end)
+    end
+end
+
 return M
