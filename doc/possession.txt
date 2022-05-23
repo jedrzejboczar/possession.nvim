@@ -205,6 +205,12 @@ plugins.delete_hidden_buffers.force~
     WARNING: this may lead to loosing unsaved changes. Instead of using this
     option consider removing `buffers` from 'sessionoptions'.
 
+                                                   *possession-delete-buffers*
+
+This plugin forcefully deletes all buffers before loading new session (on
+`before_load` hook). This may be especially useful if using `buffers` in
+'sessionopts' (if you need to store hidden buffers in sessions).
+
                                                         *possession-nvim-tree*
 
 Saves nvim-tree explorer windows and restores them when loading the session.
