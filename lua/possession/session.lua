@@ -6,6 +6,8 @@ local utils = require('possession.utils')
 local plugins = require('possession.plugins')
 local paths = require('possession.paths')
 
+M.session_name = nil
+
 -- Get last loaded/saved session
 --@return string | nil: path to session file
 function M.last()
@@ -90,6 +92,7 @@ function M.save(name, opts)
 
             -- Update link pointing to last session
             M.update_last_session(path)
+            M.session_name = name
 
             utils.info('Saved as "%s"', short)
         else
@@ -114,12 +117,38 @@ function M.save(name, opts)
     end
 end
 
+function M.autosave()
+    if M.session_name then
+        if utils.as_function(config.autosave.current)(M.session_name) then
+            utils.debug('Auto-saving session "%s"', M.session_name)
+            M.save(M.session_name, { no_confirm = true })
+        end
+    elseif utils.as_function(config.autosave.tmp)() then
+        -- Save as tmp when session is not loaded
+
+        -- Skip scratch buffer e.g. startscreen
+        local unscratch_buffers = vim.tbl_filter(function(buf)
+            return 'nofile' ~= vim.api.nvim_buf_get_option(buf, 'buftype')
+        end, vim.api.nvim_list_bufs())
+        if not unscratch_buffers or not next(unscratch_buffers) then
+            return
+        end
+
+        utils.debug('Auto-saving tmp session as "%s"', config.autosave.tmp_name)
+        M.save(config.autosave.tmp_name, { no_confirm = true })
+    end
+end
+
 -- Load session by name (or from raw data)
 --
 --@param name_or_data string|table: name if string, else a table with raw
 -- data that will be saved as the session file in JSON format.
 function M.load(name_or_data)
     vim.validate { name_or_data = { name_or_data, utils.is_type { 'string', 'table' } } }
+
+    if config.autosave.on_load then
+        M.autosave()
+    end
 
     -- Load session data
     local session_data
@@ -149,6 +178,13 @@ function M.load(name_or_data)
     -- Update link pointing to last session if loaded from file
     if path then
         M.update_last_session(path)
+    end
+    M.session_name = session_data.name
+
+    if session_data.name == config.autosave.tmp_name then
+        M.session_name = nil
+    else
+        M.session_name = session_data.name
     end
 
     plugins.after_load(session_data.name, plugin_data)
@@ -185,6 +221,9 @@ function M.delete(name, opts)
             if vim.fn.delete(path:absolute()) ~= 0 then
                 utils.error('Failed to delete session: "%s"', short)
             else
+                if M.session_name == name then
+                    M.session_name = nil
+                end
                 utils.info('Deleted "%s"', short)
             end
         else

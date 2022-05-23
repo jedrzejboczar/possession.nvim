@@ -13,6 +13,13 @@ local function defaults()
         load_silent = true,
         debug = false,
         prompt_no_cr = false,
+        autosave = {
+            current = false,  -- or fun(name): boolean
+            tmp = false,  -- or fun(): boolean
+            tmp_name = 'tmp',
+            on_load = true,
+            on_quit = true,
+        },
         commands = {
             save = 'PossessionSave',
             load = 'PossessionLoad',
@@ -47,6 +54,7 @@ local function defaults()
             },
             nvim_tree = true,
             tabby = true,
+            delete_buffers = false,
         },
     }
 end
