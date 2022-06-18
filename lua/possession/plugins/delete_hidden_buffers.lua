@@ -12,7 +12,8 @@ function M.delete_hidden_buffers(opts)
     end, vim.api.nvim_list_bufs())
 
     for _, buf in ipairs(hidden) do
-        if not pcall(vim.api.nvim_buf_delete, buf, { force = opts.force }) then
+        local force = utils.as_function(opts.force)(buf)
+        if not pcall(vim.api.nvim_buf_delete, buf, { force = force }) then
             utils.error('Cannot delete buffer with unsaved changes: "%s"', vim.api.nvim_buf_get_name(buf))
             return false
         end

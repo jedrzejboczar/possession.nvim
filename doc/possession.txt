@@ -199,7 +199,7 @@ Note: instead of using this plugin on `before_save`, one could remove
 hidden buffers when saving sessions.
 
 plugins.delete_hidden_buffers.force~
-    `boolean`
+    `boolean | function(buffer: number): boolean`
     Delete buffers even if they contain changes.
 
     WARNING: this may lead to loosing unsaved changes. Instead of using this

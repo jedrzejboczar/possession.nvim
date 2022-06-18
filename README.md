@@ -102,7 +102,7 @@ require('possession').setup {
                 'before_load',
                 vim.o.sessionoptions:match('buffer') and 'before_save',
             },
-            force = false,
+            force = false,  -- or fun(buf): boolean
         },
         nvim_tree = true,
         tabby = true,
