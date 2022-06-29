@@ -4,7 +4,7 @@
 COMMANDS                                                 *possession-commands*
 
 In commands with optional `name` argument, if the argument is omitted then
-last loaded/saved session will be used.
+currently loaded session is used (unless noted otherwise).
 
                                                              *:PossessionSave*
 :PossessionSave [{name}]~
@@ -16,7 +16,8 @@ existing session file.
                                                              *:PossessionLoad*
 :PossessionLoad [{name}]~
 
-Load given session from disk.
+Load given session from disk. When `name` is not ommitted, then use last
+loaded session name.
 
                                                             *:PossessionClose*
 :PossessionClose~

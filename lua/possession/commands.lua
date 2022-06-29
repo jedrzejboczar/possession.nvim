@@ -34,27 +34,36 @@ M.complete_session = complete_list(utils.throttle(function()
     return vim.tbl_map(paths.session_name, files)
 end, 3000))
 
-local function get_name(name)
-    if not name or name == '' then
-        local path = session.last()
-        if not path then
-            utils.error('Cannot find last loaded session name')
-            return nil
-        end
-        name = paths.session_name(path)
+local function get_current()
+    if not session.session_name then
+        utils.error('No session is currently open')
+        return nil
     end
-    return name
+    return session.session_name
+end
+
+local function get_last()
+    local path = session.last()
+    if not path then
+        utils.error('Cannot find last loaded session name')
+        return nil
+    end
+    return paths.session_name(path)
+end
+
+local function name_or(name, getter)
+    return (name and name ~= '') and name or getter()
 end
 
 function M.save(name, no_confirm)
-    local name = get_name(name)
+    name = name_or(name, get_current)
     if name then
         session.save(name, { no_confirm = no_confirm })
     end
 end
 
 function M.load(name)
-    local name = get_name(name)
+    name = name_or(name, get_last)
     if name then
         session.load(name)
     end
@@ -65,14 +74,14 @@ function M.close(force)
 end
 
 function M.delete(name)
-    local name = get_name(name)
+    name = name_or(name, get_current)
     if name then
         session.delete(name)
     end
 end
 
 function M.show(name)
-    local name = get_name(name)
+    name = name_or(name, get_current)
     if not name then
         return
     end
