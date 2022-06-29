@@ -75,6 +75,7 @@ require('possession').setup {
     commands = {
         save = 'PossessionSave',
         load = 'PossessionLoad',
+        close = 'PossessionClose',
         delete = 'PossessionDelete',
         show = 'PossessionShow',
         list = 'PossessionList',

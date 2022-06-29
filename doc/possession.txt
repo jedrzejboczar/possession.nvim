@@ -18,6 +18,12 @@ existing session file.
 
 Load given session from disk.
 
+                                                            *:PossessionClose*
+:PossessionClose~
+
+Close current session deleting all open buffers. To delete buffers with
+unsaved changes use `:PossessionClose!`.
+
                                                            *:PossessionDelete*
 :PossessionDelete [{name}]~
 
