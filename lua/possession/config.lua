@@ -23,6 +23,7 @@ local function defaults()
         commands = {
             save = 'PossessionSave',
             load = 'PossessionLoad',
+            close = 'PossessionClose',
             delete = 'PossessionDelete',
             show = 'PossessionShow',
             list = 'PossessionList',

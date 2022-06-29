@@ -28,6 +28,10 @@ local function setup(opts)
                 with_name,
                 'lua require("possession.commands").load(<f-args>)',
             },
+            [config.commands.close] = {
+                '-nargs=0 -bang',
+                'lua require("possession.commands").close("<bang>" == "!")',
+            },
             [config.commands.delete] = {
                 with_name .. ' -bang',
                 'lua require("possession.commands").delete(<q-args>, "<bang>" == "!")',

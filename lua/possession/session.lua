@@ -193,6 +193,15 @@ function M.load(name_or_data)
     utils.info('Loaded session "%s"', session_data.name)
 end
 
+-- Close currently open session
+--@param force boolean?: delete unsaved buffers
+function M.close(force)
+    if not M.session_name then return end
+
+    utils.delete_all_buffers(force)
+    M.session_name = nil
+end
+
 -- Delete session by name
 --@param no_confirm boolean?: do not ask when deleting
 --@param callback function?: called after saving (as vim.ui.input may be async)

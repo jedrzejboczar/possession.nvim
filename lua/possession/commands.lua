@@ -60,6 +60,10 @@ function M.load(name)
     end
 end
 
+function M.close(force)
+    session.close(force)
+end
+
 function M.delete(name)
     local name = get_name(name)
     if name then
