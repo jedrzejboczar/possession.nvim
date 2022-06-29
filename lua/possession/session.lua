@@ -196,7 +196,9 @@ end
 -- Close currently open session
 --@param force boolean?: delete unsaved buffers
 function M.close(force)
-    if not M.session_name then return end
+    if not M.session_name then
+        return
+    end
 
     utils.delete_all_buffers(force)
     M.session_name = nil
