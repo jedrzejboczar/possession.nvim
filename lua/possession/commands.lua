@@ -36,7 +36,7 @@ end, 3000))
 
 local function get_current()
     if not session.session_name then
-        utils.error('No session is currently open')
+        utils.error('No session is currently open - specify session name as an argument')
         return nil
     end
     return session.session_name
@@ -45,7 +45,7 @@ end
 local function get_last()
     local path = session.last()
     if not path then
-        utils.error('Cannot find last loaded session name')
+        utils.error('Cannot find last loaded session - specify session name as an argument')
         return nil
     end
     return paths.session_name(path)
