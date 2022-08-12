@@ -50,41 +50,43 @@ local function list_sessions(opts)
         return a.name < b.name
     end)
 
-    pickers.new(opts, {
-        prompt_title = 'Sessions',
-        finder = finders.new_table {
-            results = sessions,
-            entry_maker = function(entry)
-                return {
-                    value = entry,
-                    display = entry.name,
-                    ordinal = entry.name,
-                }
+    pickers
+        .new(opts, {
+            prompt_title = 'Sessions',
+            finder = finders.new_table {
+                results = sessions,
+                entry_maker = function(entry)
+                    return {
+                        value = entry,
+                        display = entry.name,
+                        ordinal = entry.name,
+                    }
+                end,
+            },
+            sorter = conf.generic_sorter(opts),
+            previewer = session_previewer(opts),
+            attach_mappings = function(buf)
+                local attach = function(telescope_act, fn)
+                    actions[telescope_act]:replace(function()
+                        local entry = action_state.get_selected_entry()
+                        if not entry then
+                            utils.warn('Nothing currently selected')
+                            return
+                        end
+                        actions.close(buf)
+                        fn(entry.value.name)
+                    end)
+                end
+
+                attach('select_default', session[opts.default_action])
+                for fn_name, action in pairs(default_actions) do
+                    attach(action, session[fn_name])
+                end
+
+                return true
             end,
-        },
-        sorter = conf.generic_sorter(opts),
-        previewer = session_previewer(opts),
-        attach_mappings = function(buf)
-            local attach = function(telescope_act, fn)
-                actions[telescope_act]:replace(function()
-                    local entry = action_state.get_selected_entry()
-                    if not entry then
-                        utils.warn('Nothing currently selected')
-                        return
-                    end
-                    actions.close(buf)
-                    fn(entry.value.name)
-                end)
-            end
-
-            attach('select_default', session[opts.default_action])
-            for fn_name, action in pairs(default_actions) do
-                attach(action, session[fn_name])
-            end
-
-            return true
-        end,
-    }):find()
+        })
+        :find()
 end
 
 return telescope.register_extension {
