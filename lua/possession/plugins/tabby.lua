@@ -12,12 +12,13 @@ function M.before_save(opts, name)
     local tab_names = {}
 
     for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
-        local fallback_nil = function()
-            return nil
+        -- Only returns the name if it is explicitly set (in tab variable), else returns ''
+        local name = require('tabby.tab').get_raw_name(tab)
+        if name ~= '' then
+            -- We must use string keys or else json.encode may assume it's a list
+            local num = tostring(vim.api.nvim_tabpage_get_number(tab))
+            tab_names[num] = name
         end
-        -- We must use string keys or else json.encode may assume it's a list
-        local num = tostring(vim.api.nvim_tabpage_get_number(tab))
-        tab_names[num] = require('tabby.util').get_tab_name(tab, fallback_nil)
     end
 
     return {
