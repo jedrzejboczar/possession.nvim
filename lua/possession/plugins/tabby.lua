@@ -12,9 +12,12 @@ function M.before_save(opts, name)
     local tab_names = {}
 
     for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
-        -- Only returns the name if it is explicitly set (in tab variable), else returns ''
-        local name = require('tabby.tab').get_raw_name(tab)
-        if name ~= '' then
+        local fallback_nil = function()
+            return nil
+        end
+        -- Get a name that was explicitly set (in tab variable), else we want nil
+        local name = require('tabby.feature.tab_name').get(tab, { name_fallback = fallback_nil })
+        if name then
             -- We must use string keys or else json.encode may assume it's a list
             local num = tostring(vim.api.nvim_tabpage_get_number(tab))
             tab_names[num] = name
@@ -35,7 +38,7 @@ function M.after_load(opts, name, plugin_data)
     for num, tab_name in pairs(plugin_data.tab_names or {}) do
         local tab = num2id[tonumber(num)]
         if tab and vim.api.nvim_tabpage_is_valid(tab) then
-            require('tabby.util').set_tab_name(tab, tab_name)
+            require('tabby.feature.tab_name').set(tab, tab_name)
         end
     end
 end
