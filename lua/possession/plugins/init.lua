@@ -8,6 +8,7 @@ local plugins = {
     'delete_hidden_buffers',
     'nvim_tree',
     'tabby',
+    'dap',
     'delete_buffers',
 }
 

@@ -229,6 +229,13 @@ Saves tabby.nvim tab page names when saving the sessions and restores them
 when loading.
 Currently no configuration options beside enabling/disabling are available.
 
+                                                              *possession-dap*
+
+Saves nvim-dap breakpoints by filename and restores them when loading a
+session.
+
+
+
 
 PLUGINS                                                   *possession-plugins*
 

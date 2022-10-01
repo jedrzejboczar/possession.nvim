@@ -15,6 +15,7 @@ Flexible session management for Neovim.
 * Configurable automatic save
 * Out of the box [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) integration
 * Example integration with [alpha-nvim](https://github.com/goolord/alpha-nvim)
+* Save & restore [nvim-dap](https://github.com/mfussenegger/nvim-dap) breakpoints
 
 ## Overview
 
@@ -107,6 +108,7 @@ require('possession').setup {
         },
         nvim_tree = true,
         tabby = true,
+        dap = true,
         delete_buffers = false,
     },
 }
