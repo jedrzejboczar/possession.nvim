@@ -164,6 +164,19 @@ Neovim or loading a different session. This behavior is disabled by default, but
 using the `autosave.*` configuration options. Check [doc/possession.txt](./doc/possession.txt)
 for details.
 
+## Statusline
+
+To display the current session name in statusline/winbar/etc. you can define the following function:
+
+```lua
+local function session_name()
+    return require('possession.session').session_name or ''
+end
+```
+
+and use it in your statusline setup. For a [lualine](https://github.com/nvim-lualine/lualine.nvim)
+example see https://github.com/jedrzejboczar/possession.nvim/issues/14#issuecomment-1272353836.
+
 ## Startup screen
 
 Currently there is no out-of-the-box integration with any startup screen, PRs welcome.
