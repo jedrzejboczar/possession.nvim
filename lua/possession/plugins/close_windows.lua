@@ -37,7 +37,7 @@ function M.close_windows(opts)
     for _, win in ipairs(to_close) do
         -- Always close floating windows, others when not preserving layout
         if is_floating(win) or not preserve_layout(win) then
-            vim.api.nvim_win_close(win, false)
+            pcall(vim.api.nvim_win_close, win, false)
         else
             vim.api.nvim_win_set_buf(win, scratch())
         end
