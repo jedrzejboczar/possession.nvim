@@ -9,11 +9,17 @@ local function is_floating(win)
 end
 
 local function match_buf_opt(buf, option, candidates)
+    if not vim.api.nvim_buf_is_valid(buf) then
+        return false
+    end
     local value = vim.api.nvim_buf_get_option(buf, option)
     return vim.tbl_contains(candidates, value)
 end
 
 local function match_window(match, win)
+    if not vim.api.nvim_win_is_valid(win) then
+        return false
+    end
     local buf = vim.api.nvim_win_get_buf(win)
     return (
         (match.floating and is_floating(win))
@@ -35,11 +41,15 @@ function M.close_windows(opts)
     end)
 
     for _, win in ipairs(to_close) do
-        -- Always close floating windows, others when not preserving layout
-        if is_floating(win) or not preserve_layout(win) then
-            pcall(vim.api.nvim_win_close, win, false)
-        else
-            vim.api.nvim_win_set_buf(win, scratch())
+        -- Double-check window valid because it could have been closed in previous loop iteration
+        if vim.api.nvim_win_is_valid(win) then
+            -- Always close floating windows, others when not preserving layout
+            if is_floating(win) or not preserve_layout(win) then
+                pcall(vim.api.nvim_win_close, win, false)
+            else
+                -- Set to dummy buffer to preserve layout
+                vim.api.nvim_win_set_buf(win, scratch())
+            end
         end
     end
 
