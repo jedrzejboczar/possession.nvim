@@ -182,6 +182,8 @@ example see https://github.com/jedrzejboczar/possession.nvim/issues/14#issuecomm
 ## Startup screen
 
 Currently there is no out-of-the-box integration with any startup screen, PRs welcome.
+For an example configuration see https://github.com/jedrzejboczar/possession.nvim/issues/22#issuecomment-1413401663.
+Some general guidelines are described below.
 
 The `require('possession.query')` module provides helper functions for querying available sessions.
 It can be helpful when generating a startup screen. Take a look at the helper function
