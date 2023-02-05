@@ -146,10 +146,6 @@ end
 function M.load(name_or_data)
     vim.validate { name_or_data = { name_or_data, utils.is_type { 'string', 'table' } } }
 
-    if config.autosave.on_load then
-        M.autosave()
-    end
-
     -- Load session data
     local session_data
     local path
@@ -158,6 +154,13 @@ function M.load(name_or_data)
         session_data = vim.json.decode(path:read())
     else
         session_data = name_or_data
+    end
+
+    -- Autosave if not loading the auto-saved session itself
+    local tmp_name = utils.as_function(config.autosave.tmp)() and config.autosave.tmp_name
+    local autosaved_name = M.session_name or tmp_name
+    if config.autosave.on_load and session_data.name ~= autosaved_name then
+        M.autosave()
     end
 
     -- Run pre-load hook that can pre-process user data, abort if returns falsy value.
