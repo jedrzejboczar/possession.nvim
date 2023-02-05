@@ -65,7 +65,7 @@ session_dir~
 
 silent~
     `boolean`
-    Suppress info messages.
+    Suppress info/debug messages (still logged to file if enabled).
 
 load_silent~
     `boolean`
@@ -74,6 +74,11 @@ load_silent~
 debug~
     `boolean`
     Show debug logs.
+
+logfile~
+    `boolean | string`
+    Save logs to `stdpath('log') .. 'possession.log` if `true` or to the file
+    with given name if `string`.
 
 prompt_no_cr~
     `boolean`

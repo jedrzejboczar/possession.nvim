@@ -65,6 +65,7 @@ require('possession').setup {
     silent = false,
     load_silent = true,
     debug = false,
+    logfile = false,
     prompt_no_cr = false,
     autosave = {
         current = false,  -- or fun(name): boolean

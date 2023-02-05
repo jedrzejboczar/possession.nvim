@@ -1,30 +1,31 @@
 local M = {}
 
 local config = require('possession.config')
+local logging = require('possession.logging')
 
 function M.debug(...)
     if config.debug then
+        local log_fn = config.silent and logging.to_file or logging.to_all
         local args = { ... }
         -- TODO: test version with a function
         if type(args[1]) == 'function' then
             args = args[1](select(2, ...))
         end
-        vim.notify(string.format(unpack(args)), vim.log.levels.DEBUG)
+        log_fn(string.format(unpack(args)), vim.log.levels.DEBUG)
     end
 end
 
 function M.info(...)
-    if not config.silent then
-        vim.notify(string.format(...))
-    end
+    local log_fn = config.silent and logging.to_file or logging.to_all
+    log_fn(string.format(...), vim.log.levels.INFO)
 end
 
 function M.warn(...)
-    vim.notify(string.format(...), vim.log.levels.WARN)
+    logging.to_all(string.format(...), vim.log.levels.WARN)
 end
 
 function M.error(...)
-    vim.notify(string.format(...), vim.log.levels.ERROR)
+    logging.to_all(string.format(...), vim.log.levels.ERROR)
 end
 
 -- Wrap function with time based throttling - will cache results until
@@ -61,7 +62,7 @@ function M.as_function(fn_or_value)
     if type(fn_or_value) == 'function' then
         return fn_or_value
     else
-        return function(...)
+        return function()
             return fn_or_value
         end
     end
