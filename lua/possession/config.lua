@@ -64,7 +64,35 @@ end
 
 local config = defaults()
 
+local function warn_on_unknown_keys(conf)
+    local unknown = {}
+
+    local function traverse(c, ref, path)
+        path = path or ''
+        for key, val in pairs(c) do
+            if ref[key] == nil then
+                table.insert(unknown, path .. key)
+            end
+            if type(val) == 'table' then
+                traverse(val, ref[key], path .. key .. '.')
+            end
+        end
+    end
+    traverse(conf, defaults())
+
+    if #unknown > 0 then
+        vim.schedule(function()
+            vim.notify(
+                'Unknown keys passed to possession.setup:\n  ' .. table.concat(unknown, '\n  '),
+                vim.log.levels.WARN
+            )
+        end)
+    end
+end
+
 function M.setup(opts)
+    warn_on_unknown_keys(opts)
+
     local new_config = vim.tbl_deep_extend('force', {}, defaults(), opts or {})
     -- Do _not_ replace the table pointer with `config = ...` because this
     -- wouldn't change the tables that have already been `require`d by other
