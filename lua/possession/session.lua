@@ -70,6 +70,7 @@ function M.save(name, opts)
             return
         end
 
+        vim.api.nvim_exec_autocmds('User', { pattern = 'SessionSavePre' })
         vimscript = M.mksession()
     end
 
