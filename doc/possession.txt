@@ -291,4 +291,14 @@ user_data~
     generated/available in |possession-hooks|.
 
 
+AUTOCOMMANDS                                         *possession-autocommands*
+
+The recommended way of integrating with session save/load events is to use the
+provided |possession-hooks| or to create |possession-plugins| and define hooks
+there. But there is also an option to perform simple actions using Neovim
+|autocmd|. Neovim has a builtin |SessionLoadPost| autocmd which is executed
+after loading the session. possession.nvim also defines |User| autocmd with
+pattern `SessionSavePre` that will be executed just before |:mksession|.
+
+
 vim:tw=78:et:ft=help:norl:
