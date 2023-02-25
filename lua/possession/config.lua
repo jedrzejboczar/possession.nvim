@@ -67,17 +67,31 @@ local config = defaults()
 local function warn_on_unknown_keys(conf)
     local unknown = {}
 
-    local function traverse(c, ref, path)
-        path = path or ''
+    local function traverse(c, ref, state)
+        state = state or {
+            path = '',
+            max_depth = 8,
+        }
+
+        if state.max_depth <= 0 then
+            return
+        end
+
         for key, val in pairs(c) do
-            if ref[key] == nil then
-                table.insert(unknown, path .. key)
-            end
-            if type(val) == 'table' then
-                traverse(val, ref[key], path .. key .. '.')
+            -- ignore list-like tables
+            if type(key) == 'string' then
+                if ref == nil or ref[key] == nil then
+                    table.insert(unknown, state.path .. key)
+                elseif type(val) == 'table' then
+                    traverse(val, ref[key], {
+                        path = state.path .. key .. '.',
+                        max_depth = state.max_depth - 1,
+                    })
+                end
             end
         end
     end
+
     traverse(conf, defaults())
 
     if #unknown > 0 then
