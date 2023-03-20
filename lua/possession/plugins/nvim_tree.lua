@@ -18,7 +18,7 @@ end
 
 -- Open nvim-tree in given tab numbers.
 local function open_tree(tab_nums)
-    local nvim_tree = require('nvim-tree')
+    local nvim_tree = require('nvim-tree.api').tree
     local num2id = utils.tab_num_to_id_map()
     local initial = vim.api.nvim_get_current_tabpage()
 
