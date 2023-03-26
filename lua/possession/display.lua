@@ -3,13 +3,21 @@ local M = {}
 local query = require('possession.query')
 local utils = require('possession.utils')
 
+local function ts_parse_query(lang, ts_query)
+    if vim.tbl_get(vim, 'treesitter', 'query', 'parse') then
+        return vim.treesitter.query.parse(lang, ts_query)
+    else
+        return vim.treesitter.parse_query(lang, ts_query)
+    end
+end
+
 -- FIXME: This seems hacky as hell and will most likely break some day...
 -- Get the lua parser for given buffer and replace its injection query
 -- with one that will highlight vimscript inside the string stored in
 -- the`vimscript` variable.
 local function patch_treesitter_injections(buf)
     local parser = vim.treesitter.get_parser(buf, 'lua')
-    local new_query = vim.treesitter.parse_query(
+    local new_query = ts_parse_query(
         'lua',
         [[
         (assignment_statement
