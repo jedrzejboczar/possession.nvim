@@ -1,54 +1,41 @@
 local config = require('possession.config')
 local session = require('possession.session')
 
-local function define_commands(defs)
-    for name, parts in pairs(defs) do
-        if name then
-            assert(#parts == 2, 'Should be a tuple {args, cmd}')
-            local args, cmd = unpack(parts)
-            vim.cmd(string.format('command! %s %s %s', args, name, cmd))
-        end
-    end
+local function cmd(name, args_desc, opts, cb)
+    local desc = name .. ' ' .. args_desc
+    opts = vim.tbl_extend('force', { desc = desc }, opts)
+    vim.api.nvim_create_user_command(name, cb, opts)
 end
 
 local function setup(opts)
     config.setup(opts)
 
-    -- Note that single quotes must be used
-    local complete_session = "v:lua.require'possession.commands'.complete_session"
-
     if config.commands then
-        local with_name = '-nargs=? -complete=customlist,' .. complete_session
-        define_commands {
-            [config.commands.save] = {
-                with_name .. ' -bang',
-                'lua require("possession.commands").save(<q-args>, "<bang>" == "!")',
-            },
-            [config.commands.load] = {
-                with_name,
-                'lua require("possession.commands").load(<f-args>)',
-            },
-            [config.commands.close] = {
-                '-nargs=0 -bang',
-                'lua require("possession.commands").close("<bang>" == "!")',
-            },
-            [config.commands.delete] = {
-                with_name .. ' -bang',
-                'lua require("possession.commands").delete(<q-args>, "<bang>" == "!")',
-            },
-            [config.commands.show] = {
-                with_name,
-                'lua require("possession.commands").show(<f-args>)',
-            },
-            [config.commands.list] = {
-                '-nargs=0 -bang',
-                'lua require("possession.commands").list("<bang>" == "!")',
-            },
-            [config.commands.migrate] = {
-                '-nargs=1 -complete=file',
-                'lua require("possession.commands").migrate(<f-args>)',
-            },
-        }
+        local names = config.commands
+        local commands = require('possession.commands')
+        local complete = commands.complete_session
+
+        cmd(names.save, 'name?', { nargs = '?', complete = complete, bang = true }, function(o)
+            commands.save(o.fargs[1], o.bang)
+        end)
+        cmd(names.load, 'name?', { nargs = '?', complete = complete }, function(o)
+            commands.load(o.fargs[1])
+        end)
+        cmd(names.close, '', { nargs = 0, bang = true }, function(o)
+            commands.close(o.bang)
+        end)
+        cmd(names.delete, 'name?', { nargs = '?', complete = complete }, function(o)
+            commands.delete(o.fargs[1])
+        end)
+        cmd(names.show, 'name?', { nargs = '?', complete = complete }, function(o)
+            commands.show(o.fargs[1])
+        end)
+        cmd(names.list, '', { nargs = 0, bang = true }, function(o)
+            commands.list(o.bang)
+        end)
+        cmd(names.migrate, 'dir_or_file', { nargs = 1, complete = 'file' }, function(o)
+            commands.migrate(o.fargs[1])
+        end)
     end
 end
 
