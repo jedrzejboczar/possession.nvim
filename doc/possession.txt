@@ -19,6 +19,12 @@ existing session file.
 Load given session from disk. When `name` is not ommitted, then use last
 loaded session name.
 
+                                                           *:PossessionRename*
+:PossessionRename [{name} [{new_name}]]~
+
+Rename session `name` to `new_name`. If `new_name` is ommited then it is taken
+from |vim.ui.input|. If `name` is ommited then current session name is used.
+
                                                             *:PossessionClose*
 :PossessionClose~
 
