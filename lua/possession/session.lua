@@ -118,6 +118,38 @@ function M.save(name, opts)
     end
 end
 
+--- Rename given session to a new name
+---@param old_name string session to be renamed
+---@param new_name string new name to use
+function M.rename(old_name, new_name)
+    vim.validate {
+        old_name = { old_name, 'string' },
+        new_name = { new_name, 'string' },
+    }
+
+    local old_path = paths.session(old_name)
+    local new_path = paths.session(new_name)
+    if not old_path:exists() then
+        utils.error('Session "%s" does not exist, no file %s', paths.session_short(old_name))
+        return
+    end
+    if new_path:exists() then
+        utils.error('Session "%s" already exists, delete it first.', paths.session_short(new_name))
+        return
+    end
+
+    local session_data = vim.json.decode(old_path:read())
+    session_data.name = new_name
+    new_path:write(vim.json.encode(session_data), 'w')
+    vim.fn.delete(old_path:absolute())
+
+    if M.session_name == old_name then
+        M.session_name = new_name
+    end
+
+    utils.info('Renamed session "%s" to "%s"', old_name, new_name)
+end
+
 function M.autosave()
     if M.session_name then
         if utils.as_function(config.autosave.current)(M.session_name) then
@@ -256,6 +288,25 @@ function M.delete(name, opts)
     else
         commit(true)
     end
+end
+
+--- Check if given session exists
+---@param name string session name
+function M.exists(name)
+    local path = paths.session(name)
+    if not path:exists() then
+        return false
+    end
+    local data_name = vim.F.npcall(function()
+        return vim.json.decode(path:read()).name
+    end)
+    if not data_name then
+        utils.warn('Could not read session file: %s', paths.session_short(name))
+    elseif data_name ~= name then
+        utils.error('Session corrupted: name vs filename mismatch: "%s" vs "%s"', data_name, paths.session_short(name))
+        return false
+    end
+    return true
 end
 
 -- Get a list of sessions as map-like table

@@ -24,6 +24,7 @@ local function defaults()
         commands = {
             save = 'PossessionSave',
             load = 'PossessionLoad',
+            rename = 'PossessionRename',
             close = 'PossessionClose',
             delete = 'PossessionDelete',
             show = 'PossessionShow',

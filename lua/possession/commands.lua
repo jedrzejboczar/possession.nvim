@@ -69,6 +69,31 @@ function M.load(name)
     end
 end
 
+local function maybe_input(value, opts, callback)
+    if value then
+        callback(value)
+    else
+        vim.ui.input(opts, callback)
+    end
+end
+
+function M.rename(name, new_name)
+    name = name_or(name, get_current)
+    if not name then
+        return
+    end
+    -- Fail with an error before asynchronous vim.ui.input kicks in
+    if not session.exists(name) then
+        utils.error('Session "%s" does not exist', name)
+        return
+    end
+    maybe_input(new_name, { prompt = 'New session name: ' }, function(resolved)
+        if resolved then
+            session.rename(name, resolved)
+        end
+    end)
+end
+
 function M.close(force)
     session.close(force)
 end
