@@ -87,7 +87,7 @@ function M.rename(name, new_name)
         utils.error('Session "%s" does not exist', name)
         return
     end
-    maybe_input(new_name, { prompt = 'New session name: ' }, function(resolved)
+    maybe_input(new_name, { prompt = 'New session name: ', default = name }, function(resolved)
         if resolved then
             session.rename(name, resolved)
         end
