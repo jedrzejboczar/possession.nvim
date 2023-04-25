@@ -21,6 +21,59 @@ function M.as_list(sessions)
     return list
 end
 
+---@alias possession.QuerySortKey 'name'|'atime'|'mtime'|'ctime'
+
+--- Sort a list of sessions in-place
+---@param sessions table[] list of sessions from `as_list`
+---@param key possession.QuerySortKey key to sort by: name, stat(2) timestamps
+---@param descending? boolean
+function M.sort_by(sessions, key, descending)
+    local get_key
+
+    if key == 'name' then
+        get_key = function(s)
+            return s.name
+        end
+    elseif vim.tbl_contains({ 'atime', 'mtime', 'ctime' }, key) then
+        local get_time = function(file)
+            local stat = vim.loop.fs_stat(file)
+            if not stat then
+                return 0
+            end
+            local t = stat[key]
+            -- use millis to fit in Lua's max float "integer precision" of 53 bits
+            return math.floor(t.sec * 1000 + t.nsec / 1000000)
+        end
+        -- cache filesystem access
+        local times = {}
+        get_key = function(s)
+            if not s.file then
+                return 0
+            elseif times[s.file] then
+                return times[s.file]
+            end
+            local t = get_time(s.file)
+            times[s.file] = t
+            return t
+        end
+    end
+
+    local cmp
+    if descending then
+        cmp = function(a, b)
+            return a > b
+        end
+    else
+        cmp = function(a, b)
+            return a < b
+        end
+    end
+
+    table.sort(sessions, function(a, b)
+        return cmp(get_key(a), get_key(b))
+    end)
+end
+
 -- Group sessions by given key
 --@param key string|function: returns a key from session data used for grouping sessions
 --@param sessions table?: if not specified as_list() will be used
