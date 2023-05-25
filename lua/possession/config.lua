@@ -36,6 +36,8 @@ local function defaults()
             after_save = function(name, user_data, aborted) end,
             before_load = function(name, user_data) return user_data end,
             after_load = function(name, user_data) end,
+            before_close = function(name) end,
+            after_close = function(name) end,
         },
         plugins = {
             close_windows = {

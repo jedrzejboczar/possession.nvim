@@ -10,7 +10,7 @@ Flexible session management for Neovim.
 * Keep track of last used session
 * Sessions stored in JSON files
 * Store arbitrary data in the session file
-* User hooks before/after save/load
+* User hooks before/after save/load/close
 * Uses good old `:mksession` under the hood
 * Configurable automatic save
 * Out of the box [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) integration
@@ -89,6 +89,8 @@ require('possession').setup {
         after_save = function(name, user_data, aborted) end,
         before_load = function(name, user_data) return user_data end,
         after_load = function(name, user_data) end,
+        before_close = function(name) end,
+        after_close = function(name) end,
     },
     plugins = {
         close_windows = {

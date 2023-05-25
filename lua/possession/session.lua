@@ -196,6 +196,9 @@ function M.load(name_or_data)
         M.autosave()
     end
 
+    -- Close current session if open
+    M.close(false)
+
     -- Run pre-load hook that can pre-process user data, abort if returns falsy value.
     local user_data = config.hooks.before_load(session_data.name, session_data.user_data)
     if not user_data then
@@ -235,8 +238,17 @@ function M.close(force)
     if not M.session_name then
         return
     end
+    local path = paths.session(M.session_name)
+    local session_data = vim.json.decode(path:read())
+    local plugin_data = session_data.plugins or {}
+
+    plugins.before_close(session_data.name, plugin_data)
+    config.hooks.before_close(session_data.name)
 
     utils.delete_all_buffers(force)
+
+    plugins.after_close(session_data.name, plugin_data)
+    config.hooks.after_close(session_data.name)
     M.session_name = nil
 end
 
