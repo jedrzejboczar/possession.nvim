@@ -6,6 +6,7 @@ local conf = require('telescope.config').values
 local finders = require('telescope.finders')
 local pickers = require('telescope.pickers')
 local previewers = require('telescope.previewers')
+local transform_mod = require('telescope.actions.mt').transform_mod
 
 local config = require('possession.config')
 local session = require('possession.session')
@@ -69,45 +70,35 @@ function M.list(opts)
         string.format('Supported "default_action" values: %s', vim.tbl_keys(session_actions))
     )
 
-    local get_sessions = function()
+    local get_finder = function()
         local sessions = opts.sessions and vim.list_slice(opts.sessions) or query.as_list()
         if opts.sort then
             local key = opts.sort == true and 'name' or opts.sort
             local descending = key ~= 'name'
             query.sort_by(sessions, key, descending)
         end
-        return sessions
+        return finders.new_table {
+            results = sessions,
+            entry_maker = function(entry)
+                return {
+                    value = entry,
+                    display = entry.name,
+                    ordinal = entry.name,
+                }
+            end,
+        }
     end
 
     pickers
         .new(opts, {
             prompt_title = 'Sessions',
-            finder = finders.new_table {
-                results = get_sessions(),
-                entry_maker = function(entry)
-                    return {
-                        value = entry,
-                        display = entry.name,
-                        ordinal = entry.name,
-                    }
-                end,
-            },
+            finder = get_finder(),
             sorter = conf.generic_sorter(opts),
             previewer = session_previewer(opts),
             attach_mappings = function(prompt_buf, map)
                 local refresh = function()
                     local picker = action_state.get_current_picker(prompt_buf)
-                    local finder = finders.new_table {
-                        results = get_sessions(),
-                        entry_maker = function(entry)
-                            return {
-                                value = entry,
-                                display = entry.name,
-                                ordinal = entry.name,
-                            }
-                        end,
-                    }
-                    picker:refresh(finder, { reset_prompt = true })
+                    picker:refresh(get_finder(), { reset_prompt = true })
                 end
 
                 local action_fn = function(act)
@@ -125,14 +116,22 @@ function M.list(opts)
 
                 actions.select_default:replace(action_fn(opts.default_action))
 
+                -- Define actions such that names will be visible in which key (after pressing "?")
+                local actions_mod = {}
                 for name, _ in pairs(session_actions) do
-                    local fn = action_fn(name)
+                    local key = 'session_' .. name
+                    actions_mod[key] = action_fn(name)
+                end
+                actions_mod = transform_mod(actions_mod)
+
+                for name, _ in pairs(session_actions) do
                     local mappings = config.telescope.list.mappings[name]
                     if type(mappings) == 'string' then
                         mappings = { i = mappings, n = mappings }
                     end
-                    map('n', mappings.n, fn)
-                    map('i', mappings.i, fn)
+                    local key = 'session_' .. name
+                    map('n', mappings.n, actions_mod[key])
+                    map('i', mappings.i, actions_mod[key])
                 end
 
                 return true
