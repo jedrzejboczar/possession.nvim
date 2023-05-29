@@ -7,122 +7,138 @@ local finders = require('telescope.finders')
 local pickers = require('telescope.pickers')
 local previewers = require('telescope.previewers')
 
+local config = require('possession.config')
 local session = require('possession.session')
 local display = require('possession.display')
 local query = require('possession.query')
 local utils = require('possession.utils')
 
 local function session_previewer(opts)
-  return previewers.new_buffer_previewer {
-    title = 'Session Preview',
-    get_buffer_by_name = function(_, entry)
-      return entry.value.name
-    end,
-    define_preview = function(self, entry, status)
-      if self.state.bufname ~= entry.value.name then
-        display.in_buffer(entry.value, self.state.bufnr)
-      end
-    end,
-  }
+    return previewers.new_buffer_previewer {
+        title = 'Session Preview',
+        get_buffer_by_name = function(_, entry)
+            return entry.value.name
+        end,
+        define_preview = function(self, entry, status)
+            if self.state.bufname ~= entry.value.name then
+                display.in_buffer(entry.value, self.state.bufnr)
+            end
+        end,
+    }
 end
 
+-- Perform given action, close prompt_buf manually if needed
+local session_actions = {
+    save = function(prompt_buf, entry, _refresh)
+        actions.close(prompt_buf)
+        session.save(entry.value.name)
+    end,
+    load = function(prompt_buf, entry, _refresh)
+        actions.close(prompt_buf)
+        session.load(entry.value.name)
+    end,
+    delete = function(prompt_buf, entry, refresh)
+        session.delete(entry.value.name, { callback = refresh })
+    end,
+    rename = function(prompt_buf, entry, refresh)
+        local opts = { prompt = 'New session name: ', default = entry.value.name }
+        vim.ui.input(opts, function(new_name)
+            if new_name then
+                session.rename(entry.value.name, new_name)
+                refresh()
+            end
+        end)
+    end,
+}
+
 ---@class possession.TelescopeListOpts
----@param default_action? 'load'|'save'|'delete'
----@param sessions? table[] list of sessions like returned by query.as_list
----@param sort? boolean|possession.QuerySortKey sort the initial sessions list, `true` means 'mtime'
+---@field default_action? 'load'|'save'|'delete'
+---@field sessions? table[] list of sessions like returned by query.as_list
+---@field sort? boolean|possession.QuerySortKey sort the initial sessions list, `true` means 'mtime'
 
 ---@param opts possession.TelescopeListOpts
 function M.list(opts)
-  opts = vim.tbl_extend('force', {
-    default_action = 'load',
-    sessions = nil,
-    sort = 'mtime',
-  }, opts or {})
+    opts = vim.tbl_extend('force', {
+        default_action = 'load',
+        sessions = nil,
+        sort = 'mtime',
+    }, opts or {})
 
-  local get_sessions = function()
-    return opts.sessions and vim.list_slice(opts.sessions) or query.as_list()
-  end
-  local sessions = get_sessions()
+    assert(
+        session_actions[opts.default_action],
+        string.format('Supported "default_action" values: %s', vim.tbl_keys(session_actions))
+    )
 
-  if opts.sort then
-    local key = opts.sort == true and 'name' or opts.sort
-    local descending = key ~= 'name'
-    query.sort_by(sessions, key, descending)
-  end
+    local get_sessions = function()
+        local sessions = opts.sessions and vim.list_slice(opts.sessions) or query.as_list()
+        if opts.sort then
+            local key = opts.sort == true and 'name' or opts.sort
+            local descending = key ~= 'name'
+            query.sort_by(sessions, key, descending)
+        end
+        return sessions
+    end
 
-  pickers
-      .new(opts, {
-        prompt_title = 'Sessions',
-        finder = finders.new_table {
-          results = sessions,
-          entry_maker = function(entry)
-            return {
-              value = entry,
-              display = entry.name,
-              ordinal = entry.name,
-            }
-          end,
-        },
-        sorter = conf.generic_sorter(opts),
-        previewer = session_previewer(opts),
-        attach_mappings = function(prompt_buf, map)
-          actions.select_default:replace(function()
-            local entry = action_state.get_selected_entry()
-            if not entry then
-              utils.warn('Nothing currently selected')
-              return
-            end
-            actions.close(prompt_buf)
-            session[opts.default_action](entry.value.name)
-          end)
+    pickers
+        .new(opts, {
+            prompt_title = 'Sessions',
+            finder = finders.new_table {
+                results = get_sessions(),
+                entry_maker = function(entry)
+                    return {
+                        value = entry,
+                        display = entry.name,
+                        ordinal = entry.name,
+                    }
+                end,
+            },
+            sorter = conf.generic_sorter(opts),
+            previewer = session_previewer(opts),
+            attach_mappings = function(prompt_buf, map)
+                local refresh = function()
+                    local picker = action_state.get_current_picker(prompt_buf)
+                    local finder = finders.new_table {
+                        results = get_sessions(),
+                        entry_maker = function(entry)
+                            return {
+                                value = entry,
+                                display = entry.name,
+                                ordinal = entry.name,
+                            }
+                        end,
+                    }
+                    picker:refresh(finder, { reset_prompt = true })
+                end
 
-          local refresh_sessions = function()
-            local picker = action_state.get_current_picker(prompt_buf)
-            local finder = finders.new_table {
-              results = get_sessions(),
-              entry_maker = function(entry)
-                return {
-                  value = entry,
-                  display = entry.name,
-                  ordinal = entry.name,
-                }
-              end,
-            }
+                local action_fn = function(act)
+                    return function()
+                        local entry = action_state.get_selected_entry()
+                        if not entry then
+                            utils.warn('Nothing currently selected')
+                            return
+                        end
+                        if session_actions[act](prompt_buf, entry, refresh) then
+                            refresh()
+                        end
+                    end
+                end
 
-            picker:refresh(finder, { reset_prompt = true })
-          end
+                actions.select_default:replace(action_fn(opts.default_action))
 
-          local delete_session = function()
-            local entry = action_state.get_selected_entry()
-            if not entry then
-              utils.warn('Nothing currently selected')
-              return
-            end
-            session.delete(entry.value.name, { no_confirm = true })
-            refresh_sessions()
-          end
+                for name, _ in pairs(session_actions) do
+                    local fn = action_fn(name)
+                    local mappings = config.telescope.list.mappings[name]
+                    if type(mappings) == 'string' then
+                        mappings = { i = mappings, n = mappings }
+                    end
+                    map('n', mappings.n, fn)
+                    map('i', mappings.i, fn)
+                end
 
-          local rename_session = function()
-            local entry = action_state.get_selected_entry()
-            if not entry then
-              utils.warn('Nothing currently selected')
-              return
-            end
-            local new_name = vim.fn.input('New session name: ')
-            session.rename(entry.value.name, new_name)
-            refresh_sessions()
-          end
-
-          map('n', 'd', delete_session)
-          map('n', 'r', rename_session)
-
-          map('i', '<c-d>', delete_session)
-          map('i', '<c-r>', rename_session)
-
-          return true
-        end,
-      })
-      :find()
+                return true
+            end,
+        })
+        :find()
 end
 
 return M
