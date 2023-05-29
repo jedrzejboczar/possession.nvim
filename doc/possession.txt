@@ -245,7 +245,24 @@ Currently no configuration options beside enabling/disabling are available.
 Saves nvim-dap breakpoints by filename and restores them when loading a
 session.
 
+                                                        *possession-telescope*
 
+telescope~
+    `table`
+    Configuration for builtin possession telescope pickers.
+
+telescope.list~
+    `table`
+    List available sessions.
+
+telescope.default_action~
+    `string`
+    Action (key from `telescope.list.mappings`) that is executed on `<cr>`.
+
+telescope.mappings.*~
+    `string|table`
+    Keys used to bind given action. Can be a table of bindings for normal/insert
+    mode or a string to use the same binding for both.
 
 
 PLUGINS                                                   *possession-plugins*

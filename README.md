@@ -113,6 +113,17 @@ require('possession').setup {
         dap = true,
         delete_buffers = false,
     },
+    telescope = {
+        list = {
+            default_action = 'load',
+            mappings = {
+                save = { n = '<c-x>', i = '<c-x>' },
+                load = { n = '<c-v>', i = '<c-v>' },
+                delete = { n = '<c-t>', i = '<c-t>' },
+                rename = { n = '<c-r>', i = '<c-r>' },
+            },
+        },
+    },
 }
 ```
 
