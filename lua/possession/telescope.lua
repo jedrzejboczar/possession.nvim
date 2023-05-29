@@ -6,7 +6,9 @@ local conf = require('telescope.config').values
 local finders = require('telescope.finders')
 local pickers = require('telescope.pickers')
 local previewers = require('telescope.previewers')
+local transform_mod = require('telescope.actions.mt').transform_mod
 
+local config = require('possession.config')
 local session = require('possession.session')
 local display = require('possession.display')
 local query = require('possession.query')
@@ -26,17 +28,34 @@ local function session_previewer(opts)
     }
 end
 
--- Provide some default "mappings"
-local default_actions = {
-    save = 'select_horizontal',
-    load = 'select_vertical',
-    delete = 'select_tab',
+-- Perform given action, close prompt_buf manually if needed
+local session_actions = {
+    save = function(prompt_buf, entry, _refresh)
+        actions.close(prompt_buf)
+        session.save(entry.value.name)
+    end,
+    load = function(prompt_buf, entry, _refresh)
+        actions.close(prompt_buf)
+        session.load(entry.value.name)
+    end,
+    delete = function(prompt_buf, entry, refresh)
+        session.delete(entry.value.name, { callback = refresh })
+    end,
+    rename = function(prompt_buf, entry, refresh)
+        local opts = { prompt = 'New session name: ', default = entry.value.name }
+        vim.ui.input(opts, function(new_name)
+            if new_name then
+                session.rename(entry.value.name, new_name)
+                refresh()
+            end
+        end)
+    end,
 }
 
 ---@class possession.TelescopeListOpts
----@param default_action? 'load'|'save'|'delete'
----@param sessions? table[] list of sessions like returned by query.as_list
----@param sort? boolean|possession.QuerySortKey sort the initial sessions list, `true` means 'mtime'
+---@field default_action? 'load'|'save'|'delete'
+---@field sessions? table[] list of sessions like returned by query.as_list
+---@field sort? boolean|possession.QuerySortKey sort the initial sessions list, `true` means 'mtime'
 
 ---@param opts possession.TelescopeListOpts
 function M.list(opts)
@@ -47,48 +66,72 @@ function M.list(opts)
     }, opts or {})
 
     assert(
-        default_actions[opts.default_action],
-        string.format('Supported "default_action" values: %s', vim.tbl_keys(default_actions))
+        session_actions[opts.default_action],
+        string.format('Supported "default_action" values: %s', vim.tbl_keys(session_actions))
     )
 
-    local sessions = opts.sessions and vim.list_slice(opts.sessions) or query.as_list()
-    if opts.sort then
-        local key = opts.sort == true and 'name' or opts.sort
-        local descending = key ~= 'name'
-        query.sort_by(sessions, key, descending)
+    local get_finder = function()
+        local sessions = opts.sessions and vim.list_slice(opts.sessions) or query.as_list()
+        if opts.sort then
+            local key = opts.sort == true and 'name' or opts.sort
+            local descending = key ~= 'name'
+            query.sort_by(sessions, key, descending)
+        end
+        return finders.new_table {
+            results = sessions,
+            entry_maker = function(entry)
+                return {
+                    value = entry,
+                    display = entry.name,
+                    ordinal = entry.name,
+                }
+            end,
+        }
     end
 
     pickers
         .new(opts, {
             prompt_title = 'Sessions',
-            finder = finders.new_table {
-                results = sessions,
-                entry_maker = function(entry)
-                    return {
-                        value = entry,
-                        display = entry.name,
-                        ordinal = entry.name,
-                    }
-                end,
-            },
+            finder = get_finder(),
             sorter = conf.generic_sorter(opts),
             previewer = session_previewer(opts),
-            attach_mappings = function(buf)
-                local attach = function(telescope_act, fn)
-                    actions[telescope_act]:replace(function()
+            attach_mappings = function(prompt_buf, map)
+                local refresh = function()
+                    local picker = action_state.get_current_picker(prompt_buf)
+                    picker:refresh(get_finder(), { reset_prompt = true })
+                end
+
+                local action_fn = function(act)
+                    return function()
                         local entry = action_state.get_selected_entry()
                         if not entry then
                             utils.warn('Nothing currently selected')
                             return
                         end
-                        actions.close(buf)
-                        fn(entry.value.name)
-                    end)
+                        if session_actions[act](prompt_buf, entry, refresh) then
+                            refresh()
+                        end
+                    end
                 end
 
-                attach('select_default', session[opts.default_action])
-                for fn_name, action in pairs(default_actions) do
-                    attach(action, session[fn_name])
+                actions.select_default:replace(action_fn(opts.default_action))
+
+                -- Define actions such that names will be visible in which key (after pressing "?")
+                local actions_mod = {}
+                for name, _ in pairs(session_actions) do
+                    local key = 'session_' .. name
+                    actions_mod[key] = action_fn(name)
+                end
+                actions_mod = transform_mod(actions_mod)
+
+                for name, _ in pairs(session_actions) do
+                    local mappings = config.telescope.list.mappings[name]
+                    if type(mappings) == 'string' then
+                        mappings = { i = mappings, n = mappings }
+                    end
+                    local key = 'session_' .. name
+                    map('n', mappings.n, actions_mod[key])
+                    map('i', mappings.i, actions_mod[key])
                 end
 
                 return true
