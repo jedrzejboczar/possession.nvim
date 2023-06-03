@@ -113,7 +113,7 @@ autosave.tmp~
     Automatically save a temporary session if no session has been loaded yet.
 
 autosave.tmp_name~
-    `string`
+    `string | function(): string`
     Name used for the temporary session when `autosave.tmp` is enabled.
 
 autosave.on_load~

@@ -70,7 +70,7 @@ require('possession').setup {
     autosave = {
         current = false,  -- or fun(name): boolean
         tmp = false,  -- or fun(): boolean
-        tmp_name = 'tmp',
+        tmp_name = 'tmp', -- or fun(): string
         on_load = true,
         on_quit = true,
     },

@@ -167,8 +167,9 @@ function M.autosave()
             return
         end
 
-        utils.debug('Auto-saving tmp session as "%s"', config.autosave.tmp_name)
-        M.save(config.autosave.tmp_name, { no_confirm = true })
+        local tmp_name = utils.as_function(config.autosave.tmp_name)()
+        utils.debug('Auto-saving tmp session as "%s"', tmp_name)
+        M.save(tmp_name, { no_confirm = true })
     end
 end
 
@@ -190,7 +191,7 @@ function M.load(name_or_data)
     end
 
     -- Autosave if not loading the auto-saved session itself
-    local tmp_name = utils.as_function(config.autosave.tmp)() and config.autosave.tmp_name
+    local tmp_name = utils.as_function(config.autosave.tmp)() and utils.as_function(config.autosave.tmp_name)()
     local autosaved_name = M.session_name or tmp_name
     if config.autosave.on_load and session_data.name ~= autosaved_name then
         M.autosave()
@@ -217,7 +218,7 @@ function M.load(name_or_data)
     end
     M.session_name = session_data.name
 
-    if session_data.name == config.autosave.tmp_name then
+    if session_data.name == tmp_name then
         M.session_name = nil
     else
         M.session_name = session_data.name
