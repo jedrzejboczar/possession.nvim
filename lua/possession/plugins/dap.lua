@@ -2,10 +2,12 @@ local M = {}
 
 local utils = require('possession.utils')
 
-local has_plugin = pcall(require, 'dap')
+local has_plugin = function()
+    return pcall(require, 'dap')
+end
 
 function M.before_save(opts, name)
-    if not has_plugin then
+    if not has_plugin() then
         return {}
     end
 
@@ -28,7 +30,11 @@ function M.before_save(opts, name)
 end
 
 function M.after_load(opts, name, plugin_data)
-    if not has_plugin then
+    if plugin_data.breakpoints == nil or #plugin_data.breakpoints == 0 then
+        return -- No breakpoints to load, no need to load dap plugin
+    end
+
+    if not has_plugin() then
         return
     end
 
