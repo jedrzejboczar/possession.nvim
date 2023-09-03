@@ -153,6 +153,14 @@ hooks.after_load~
     Invoked just before `possession.load` returns. Receives the `user_data`
     from the `before_load` hook.
 
+hooks.before_close~
+    `function(name: string)
+    Invoked just before `possession.close` deletes buffers.
+
+hooks.after_close~
+    `function(name: string)
+    Invoked just before `possession.close` returns.
+
                                                    *possession-plugins-config*
 plugins~
     `table`
