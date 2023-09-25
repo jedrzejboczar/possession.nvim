@@ -5,14 +5,16 @@ local session = require('possession.session')
 local paths = require('possession.paths')
 local utils = require('possession.utils')
 
--- Migrate mksession-based file to JSON format by loading and saving the session
+--- Migrate mksession-based file to JSON format by loading and saving the session
+---@param vimscript_path string
+---@param opts? { name: string?, callback: function? }
 function M.migrate(vimscript_path, opts)
     opts = vim.tbl_extend('force', {
         name = nil,
         callback = nil,
     }, opts or {})
     -- If not provided fallback to filename without extension
-    local name = opts.name and opts.name or paths.session_name(vimscript_path)
+    local name = assert(opts.name and opts.name or paths.session_name(vimscript_path))
     local vimscript = Path:new(vimscript_path):read()
 
     -- Try to retrieve cwd from vimscript, fall back to getcwd
@@ -36,7 +38,8 @@ function M.migrate(vimscript_path, opts)
     })
 end
 
--- Try to migrate directory with vimscript sessions to config.session_dir
+--- Try to migrate directory with vimscript sessions to config.session_dir
+---@param vimscript_dir string
 function M.migrate_dir(vimscript_dir)
     -- TODO: does it handle path separators correctly
     local glob = vim.fn.expand(vimscript_dir) .. '/*'

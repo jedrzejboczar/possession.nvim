@@ -29,10 +29,13 @@ local function patch_treesitter_injections(buf)
     parser._injection_query = new_query
 end
 
--- Print a list of sessions as Vim message
---@param sessions table?: optional list of sessions
---@param vimscript boolean?: include vimscript in the output
---@param user_data boolean?: include user_data in the output
+---@class possession.EchoSessionsOpts
+---@field sessions? table[]
+---@field vimscript? boolean include vimscript in the output
+---@field user_data? boolean include user_data in the output
+
+--- Print a list of sessions as Vim message
+---@param opts? possession.EchoSessionsOpts
 function M.echo_sessions(opts)
     opts = vim.tbl_extend('force', {
         sessions = nil,
@@ -82,8 +85,10 @@ function M.echo_sessions(opts)
     vim.api.nvim_echo(chunks, false, {})
 end
 
--- Display session data in given buffer.
--- Data may optionally contain "file" key with path to session file.
+--- Display session data in given buffer.
+--- Data may optionally contain "file" key with path to session file.
+---@param data table
+---@param buf integer
 function M.in_buffer(data, buf)
     -- (a bit hacky) way to easily get syntax highlighting - just format everything
     -- as valid Lua code and set filetype.

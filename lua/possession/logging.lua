@@ -39,6 +39,8 @@ local function get_logfile()
     return logfile
 end
 
+---@param msg string
+---@param level integer
 function M.to_file(msg, level)
     local file = get_logfile()
     if file then
@@ -48,6 +50,8 @@ function M.to_file(msg, level)
     end
 end
 
+---@param msg string
+---@param level integer
 function M.to_all(msg, level)
     vim.notify(msg, level)
     M.to_file(msg, level)
