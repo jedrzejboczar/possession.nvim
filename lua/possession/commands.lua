@@ -55,6 +55,8 @@ local function name_or(name, getter)
     return (name and name ~= '') and name or getter()
 end
 
+---@param name? string
+---@param no_confirm? boolean
 function M.save(name, no_confirm)
     name = name_or(name, get_current)
     if name then
@@ -62,6 +64,7 @@ function M.save(name, no_confirm)
     end
 end
 
+---@param name? string
 function M.load(name)
     name = name_or(name, get_last)
     if name then
@@ -77,6 +80,8 @@ local function maybe_input(value, opts, callback)
     end
 end
 
+---@param name? string
+---@param new_name? string
 function M.rename(name, new_name)
     name = name_or(name, get_current)
     if not name then
@@ -94,10 +99,12 @@ function M.rename(name, new_name)
     end)
 end
 
+---@param force? boolean
 function M.close(force)
     session.close(force)
 end
 
+---@param name? string
 function M.delete(name)
     name = name_or(name, get_current)
     if name then
@@ -105,6 +112,7 @@ function M.delete(name)
     end
 end
 
+---@param name? string
 function M.show(name)
     name = name_or(name, get_current)
     if not name then
@@ -121,10 +129,12 @@ function M.show(name)
     vim.api.nvim_win_set_buf(0, buf)
 end
 
+---@param full? boolean
 function M.list(full)
     display.echo_sessions { vimscript = full }
 end
 
+---@param path string
 function M.migrate(path)
     if vim.fn.getftype(path) == 'file' then
         migrate.migrate(path)

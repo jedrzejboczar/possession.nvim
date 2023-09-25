@@ -62,6 +62,8 @@ local function call_plugin(hook, p, name, plugin_data, aborted)
     return data
 end
 
+---@param name string
+---@return table
 function M.before_save(name)
     local plugin_data = {}
     for _, p in ipairs(get_enabled('before_save')) do
@@ -78,12 +80,18 @@ function M.before_save(name)
     return plugin_data
 end
 
+---@param name string
+---@param plugin_data table
+---@param aborted boolean
 function M.after_save(name, plugin_data, aborted)
     for _, p in ipairs(get_enabled('after_save')) do
         call_plugin('after_save', p, name, plugin_data[p], aborted)
     end
 end
 
+---@param name string
+---@param plugin_data table
+---@return table
 function M.before_load(name, plugin_data)
     for _, p in ipairs(get_enabled('before_load')) do
         local data = call_plugin('before_load', p, name, plugin_data[p])
@@ -96,15 +104,16 @@ function M.before_load(name, plugin_data)
     return plugin_data
 end
 
+---@param name string
+---@param plugin_data table
 function M.after_load(name, plugin_data)
     for _, p in ipairs(get_enabled('after_load')) do
         call_plugin('after_load', p, name, plugin_data[p])
     end
 end
 
--- Crate a basic implementation of plugin hooks that does not store any session data.
---@param fn function: f(opts) -> boolean that will receive plugin config and should
--- return `true` on success
+--- Crate a basic implementation of plugin hooks that does not store any session data.
+---@param fn fun(opts: table): boolean receives plugin config and should return `true` on success
 function M.implement_basic_hooks(fn)
     return {
         before_save = function(opts, name)

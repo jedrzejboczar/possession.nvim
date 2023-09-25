@@ -6,10 +6,11 @@ local utils = require('possession.utils')
 local plugins = require('possession.plugins')
 local paths = require('possession.paths')
 
+---@type string?
 M.session_name = nil
 
--- Get last loaded/saved session
---@return string | nil: path to session file
+--- Get last loaded/saved session
+---@return string|nil path to session file
 function M.last()
     local link_path = paths.last_session_link()
     local path = vim.loop.fs_readlink(link_path:absolute())
@@ -27,12 +28,15 @@ function M.last()
     return path:absolute()
 end
 
--- Save current session
---
---@param vimscript string?: mksession-generated commands, ignore hooks
---@param no_confirm boolean?: do not ask when overwriting existing file
---@param callback function?: called after saving (as vim.ui.input may be async)
---@param cwd string?: force cwd, useful in combination with vimscript
+---@class possession.SaveOpts
+---@field vimscript? string mksession-generated commands, ignore hooks
+---@field no_confirm? boolean do not ask when overwriting existing file
+---@field callback? function called after saving (as vim.ui.input may be async)
+---@field cwd? string force cwd, useful in combination with vimscript
+
+--- Save current session
+---@param name string
+---@param opts? possession.SaveOpts
 function M.save(name, opts)
     opts = vim.tbl_extend('force', {
         vimscript = nil,
@@ -173,10 +177,9 @@ function M.autosave()
     end
 end
 
--- Load session by name (or from raw data)
---
---@param name_or_data string|table: name if string, else a table with raw
--- data that will be saved as the session file in JSON format.
+--- Load session by name (or from raw data)
+---
+---@param name_or_data string|table name or raw data that will be saved as the session file in JSON format
 function M.load(name_or_data)
     vim.validate { name_or_data = { name_or_data, utils.is_type { 'string', 'table' } } }
 
@@ -230,8 +233,8 @@ function M.load(name_or_data)
     utils.info('Loaded session "%s"', session_data.name)
 end
 
--- Close currently open session
---@param force boolean?: delete unsaved buffers
+--- Close currently open session
+---@param force? boolean delete unsaved buffers
 function M.close(force)
     if not M.session_name then
         return
@@ -241,9 +244,13 @@ function M.close(force)
     M.session_name = nil
 end
 
--- Delete session by name
---@param no_confirm boolean?: do not ask when deleting
---@param callback function?: called after saving (as vim.ui.input may be async)
+---@class possession.DeleteOpts
+---@field no_confirm? boolean do not ask when deleting
+---@field callback? function called after saving (as vim.ui.input may be async)
+
+--- Delete session by name
+---@param name string
+---@param opts? possession.DeleteOpts
 function M.delete(name, opts)
     opts = vim.tbl_extend('force', {
         no_confirm = false,
@@ -310,11 +317,12 @@ function M.exists(name)
     return true
 end
 
--- Get a list of sessions as map-like table
---@param no_read boolean?: do not read/parse session files, just scan the directory
---@return table: depending on `no_read` this will be:
---  no_read=false: table of {filename: session_data} for all available sessions
---  no_read=true: table of {filename: true}
+---@class possession.ListOpts
+---@field no_read? boolean do not read/parse session files, just scan the directory
+
+--- Get a list of sessions as map-like table
+---@param opts? possession.ListOpts
+---@return table<string, table>|table<string, boolean> sessions {filename: V} with V type depending on `no_read`
 function M.list(opts)
     opts = vim.tbl_extend('force', {
         no_read = true,
@@ -331,14 +339,15 @@ function M.list(opts)
     return sessions
 end
 
--- Run :mksession! and return output as string by writing to a temporary file
+--- Run :mksession! and return output as string by writing to a temporary file
 function M.mksession()
     local tmp = vim.fn.tempname()
     vim.cmd('mksession! ' .. tmp)
     return Path:new(tmp):read()
 end
 
--- Change the path to last file (make the symlink point to `path`)
+--- Change the path to last file (make the symlink point to `path`)
+---@param path Path
 function M.update_last_session(path)
     -- Must unlink if exists because fs_symlink won't overwrite existing links
     local link_path = paths.last_session_link()

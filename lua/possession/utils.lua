@@ -28,9 +28,13 @@ function M.error(...)
     logging.to_all(string.format(...), vim.log.levels.ERROR)
 end
 
--- Wrap function with time based throttling - will cache results until
--- `timeout` milliseconds since last function call. Note that timestamp
--- does not change until we reach next libuv event loop step.
+--- Wrap function with time based throttling - will cache results until
+--- `timeout` milliseconds since last function call. Note that timestamp
+--- does not change until we reach next libuv event loop step.
+---@generic T
+---@param fn fun(...): T
+---@param timeout integer
+---@return fun(...): T
 function M.throttle(fn, timeout)
     local last_time
     local cached
@@ -44,8 +48,11 @@ function M.throttle(fn, timeout)
     end
 end
 
--- Lazily evaluate a function, caching the result of the first call
--- for all subsequent calls ever.
+--- Lazily evaluate a function, caching the result of the first call
+--- for all subsequent calls ever.
+---@generic T
+---@param fn fun(...): T
+---@return fun(...): T
 function M.lazy(fn)
     local cached
     return function(...)
@@ -58,6 +65,9 @@ function M.lazy(fn)
 end
 
 -- For variables that can be values or functions.
+---@generic T
+---@param fn_or_value T|fun(...): T
+---@return fun(...): T
 function M.as_function(fn_or_value)
     if type(fn_or_value) == 'function' then
         return fn_or_value
@@ -75,14 +85,21 @@ function M.bind(fn, ...)
     end
 end
 
--- Create a function that indexes given table
+--- Create a function that indexes given table
+---@generic K
+---@generic V
+---@param tbl table<K, V>
+---@return fun(key: K): V
 function M.getter(tbl)
     return function(key)
         return tbl[key]
     end
 end
 
--- Transform list-like table to a set {val = true, ...}
+--- Transform list-like table to a set {val = true, ...}
+---@generic T
+---@param list T[]
+---@return table<T, boolean>
 function M.list_to_set(list)
     local set = {}
     for _, val in ipairs(list) do
@@ -91,7 +108,12 @@ function M.list_to_set(list)
     return set
 end
 
--- Map elements from `list` and filter out nil values.
+--- Map elements from `list` and filter out nil values.
+---@generic T
+---@generic U
+---@param fn fun(v: T): U
+---@param list T[]
+---@return U[]
 function M.filter_map(fn, list)
     local filter = function(elem)
         return elem ~= nil
@@ -99,7 +121,13 @@ function M.filter_map(fn, list)
     return vim.tbl_filter(filter, vim.tbl_map(fn, list))
 end
 
--- Return new table by applying fn as: {key: value} -> {key: fn(value, key)}
+--- Return new table by applying fn as: {key: value} -> {key: fn(value, key)}
+---@generic K
+---@generic U
+---@generic V
+---@param tbl table<K, V>
+---@param fn fun(v: V, k: K): U
+---@return table<K, U>
 function M.tbl_map_values(tbl, fn)
     local new = {}
     for key, val in pairs(tbl) do
@@ -108,11 +136,15 @@ function M.tbl_map_values(tbl, fn)
     return new
 end
 
+---@param s string
+---@param trimempty? boolean
+---@return string[]
 function M.split_lines(s, trimempty)
     return vim.split(s, '\n', { plain = true, trimempty = trimempty })
 end
 
--- Get a mapping from tabpage number to tabpage id (handle)
+--- Get a mapping from tabpage number to tabpage id (handle)
+---@return table<integer, integer>
 function M.tab_num_to_id_map()
     local mapping = {}
     for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
@@ -121,10 +153,12 @@ function M.tab_num_to_id_map()
     return mapping
 end
 
--- Return function that checks if values have given type/types.
--- Used to support older versions of vim.validate that only accept single type or a validator function.
--- TODO: create a vim.validate wrapper instead of having to remember about 0.6 compatibility
+--- Return function that checks if values have given type/types.
+--- Used to support older versions of vim.validate that only accept single type or a validator function.
+---@param types string|string[]
+---@return fun(v: any): boolean
 function M.is_type(types)
+    -- TODO: create a vim.validate wrapper instead of having to remember about 0.6 compatibility
     if type(types) == 'string' then
         types = { types }
     end
@@ -133,13 +167,14 @@ function M.is_type(types)
     end
 end
 
--- Clear the prompt (whatever printed on the command line)
+--- Clear the prompt (whatever printed on the command line)
 function M.clear_prompt()
     vim.api.nvim_command('normal! :')
 end
 
--- Ask the user a y/n question
---@param callback function(boolean): receives true on "yes" and false on "no"
+--- Ask the user a y/n question
+---@param prompt string
+---@param callback fun(yes: boolean) receives true on "yes" and false on "no"
 function M.prompt_yes_no(prompt, callback)
     prompt = string.format('%s [y/N] ', prompt)
     if config.prompt_no_cr then -- use getchar so no <cr> is required
@@ -155,8 +190,8 @@ function M.prompt_yes_no(prompt, callback)
     end
 end
 
--- Delete all open buffers, avoiding potential errors
---@param force boolean: delete buffers with unsaved changes
+--- Delete all open buffers, avoiding potential errors
+---@param force? boolean delete buffers with unsaved changes
 function M.delete_all_buffers(force)
     -- Deleting the current buffer before deleting other buffers will cause autocmd "BufEnter" to be triggered.
     -- Lspconfig will use the invalid buffer handler in vim.schedule.

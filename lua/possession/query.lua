@@ -4,11 +4,11 @@ local session = require('possession.session')
 local utils = require('possession.utils')
 local config = require('possession.config')
 
--- Get a sessions as a list-like table
---@param sessions table?: map-like table of sessions {filename: data}
---@return table: list-like table of session data additional `file` key
+--- Get a sessions as a list-like table
+---@param sessions? table<string, table> like from possession.session.list()
+---@return table[] list of session data with additional `file` key
 function M.as_list(sessions)
-    sessions = sessions or session.list()
+    sessions = sessions or session.list() --[[@as table<string, table> ]]
     local list = {}
     for file, data in pairs(sessions) do
         if data.file then
@@ -74,11 +74,13 @@ function M.sort_by(sessions, key, descending)
     end)
 end
 
--- Group sessions by given key
---@param key string|function: returns a key from session data used for grouping sessions
---@param sessions table?: if not specified as_list() will be used
---@return table, table: returns two values, first is a table of groups {key: sessions}
--- and the second one is a list of non-matching sessions (ones for which key was nil)
+--- Group sessions by given key
+--- Returns two values, first is a table of groups {key: sessions}
+--- and the second one is a list of non-matching sessions (ones for which key was nil).
+---@param key string|fun(sdata: table): string a key from session data used for grouping sessions
+---@param sessions? table[] if not specified as_list() will be used
+---@return table<string, table[]>
+---@return table[]
 function M.group_by(key, sessions)
     vim.validate {
         key = { key, utils.is_type { 'string', 'function' } },
@@ -119,17 +121,20 @@ function M.group_by(key, sessions)
     return groups, others
 end
 
+---@param dir string
+---@param root string
+---@return boolean
 local function is_descendant(dir, root)
-    dir = vim.fn.fnamemodify(vim.fn.expand(dir), ':p')
-    root = vim.fn.fnamemodify(vim.fn.expand(root), ':p')
+    dir = assert(vim.fn.fnamemodify(vim.fn.expand(dir), ':p'))
+    root = assert(vim.fn.fnamemodify(vim.fn.expand(root), ':p'))
     return vim.startswith(dir, root)
 end
 
 -- Match sessions based on parent directory matching.
 -- Session will be assigned to the group of the first directory from `root_dirs`
 -- that is a parent of `session.cwd`.
---@param root_dirs table|string: list of root directories that define the groups (or single dir)
---@return function
+---@param root_dirs string|string[] root directory(-ies) that define the groups
+---@return fun(sdata: table): string?
 function M.by_root_dir(root_dirs)
     if type(root_dirs) == 'string' then
         root_dirs = { root_dirs }
@@ -144,8 +149,8 @@ function M.by_root_dir(root_dirs)
 end
 
 -- Match sessions by workspace, where each workspace has a list of root_dirs.
---@param workspaces table: map-like table {name: root_dirs}
---@return function
+---@param workspaces table<string, string[]> {name: root_dirs}
+---@return fun(sdata: table): string?
 function M.by_workspace(workspaces)
     local matchers = utils.tbl_map_values(workspaces, M.by_root_dir)
     return function(s)
@@ -157,27 +162,37 @@ function M.by_workspace(workspaces)
     end
 end
 
--- Do-all helper for generating session data suitable for usage in a startup screen.
---
--- This will group sessions by workspace, where each workspace is defined by
--- a list of root directories. Shortcuts in the form {prefix}{number} will be
--- generated for sessions in each workspace. The returned data can be used
--- to generate startup screen buttons.
---
---@param workspace_specs table: list of lists {ws_name, ws_prefix, ws_root_dirs}
---@param sessions table?
---@param others_prefix string?: prefix for sessions without a workspace, defaults to 's'
---@param sort_by nil|string|function?: what key to use when sorting sessions within a workspace;
--- string value is used as session key (defaults to 'name', which sorts by session.name);
--- if function then it should have a signature fn(session) -> sort_key
---@param map_session nil|function?: if specified, then will be used to convert all sessions
--- in the retuned data to different values (normally returns session_data tables);
--- useful to just get session names in the output instead of tables
---@return table table: returns 2 values, first is list of lists
---   {ws_name, sessions_with_shortcuts}
--- where sessions_with_shortcuts is a list of pairs
---   {shortcut, session_data}
--- the second returned value is sessions_with_shortcuts that did not match any workspace
+---@class possession.WorkspaceSpec
+---@field [1] string name
+---@field [2] string prefix
+---@field [3] string root dirs
+
+---@class possession.SessionWithShortcut
+---@field [1] string shortcut
+---@field [2] table session data
+
+---@class possession.WorkspaceInfo
+---@field [1] string name
+---@field [2] possession.SessionWithShortcut[]
+
+---@class possession.WorkspacesWithShortcutsOpts
+---@field sessions? table[]
+---@field others_prefix? string prefix for sessions without a workspace, defaults to 's'
+---@field sort_by? string|fun(sdata: table): string key for sorting sessions within a workspace (default: session.name)
+---@field map_session? fun(sdata: table): any convert all sessions in the retuned data to different values (normally
+---       returns session_data tables) useful to just get session names in the output instead of tables
+
+--- Do-all helper for generating session data suitable for usage in a startup screen.
+---
+--- This will group sessions by workspace, where each workspace is defined by
+--- a list of root directories. Shortcuts in the form {prefix}{number} will be
+--- generated for sessions in each workspace. The returned data can be used
+--- to generate startup screen buttons.
+---
+---@param workspace_specs possession.WorkspaceSpec[]
+---@param opts? possession.WorkspacesWithShortcutsOpts
+---@return possession.WorkspaceInfo[] workspaces
+---@return possession.SessionWithShortcut[] sessions that did not match any workspace
 function M.workspaces_with_shortcuts(workspace_specs, opts)
     opts = vim.tbl_extend('force', {
         sessions = nil,
@@ -210,6 +225,9 @@ function M.workspaces_with_shortcuts(workspace_specs, opts)
 
     local groups, others = M.group_by(M.by_workspace(workspaces), opts.sessions)
 
+    ---@param prefix string
+    ---@param sessions table[]
+    ---@return possession.SessionWithShortcut[]
     local with_shortcuts = function(prefix, sessions)
         if opts.sort_by then
             local get = type(opts.sort_by) == 'function' and opts.sort_by
@@ -240,14 +258,17 @@ function M.workspaces_with_shortcuts(workspace_specs, opts)
     return groups, others
 end
 
--- Example session layout generator for alpha.nvim.
--- This will group sessions by workspaces and return an alpha.nvim 'group' table.
---
---@param workspace_specs table: same as in M.workspaces_with_shortcuts()
---@param create_button function: f(shortcut, text, keybind) that generates alpha.nvim button, see:
--- https://github.com/goolord/alpha-nvim/blob/8a1477d8b99a931530f3cfb70f6805b759bebbf7/lua/alpha/themes/startify.lua#L28
---@param title_highlight string?: highlight group for section titles
---@param others_name string?: name used for section with sessions not matching any workspace
+---@class possession.AlphaWorkspaceLayoutOpts
+---@field title_highlight? string highlight group for section titles
+---@field others_name? string name used for section with sessions not matching any workspace
+
+--- Example session layout generator for alpha.nvim.
+--- This will group sessions by workspaces and return an alpha.nvim 'group' table.
+---
+---@param workspace_specs possession.WorkspaceSpec[]
+---@param create_button fun(shortcut: string, text: string, keybind: string): table generates alpha.nvim button, see:
+---https://github.com/goolord/alpha-nvim/blob/8a1477d8b99a931530f3cfb70f6805b759bebbf7/lua/alpha/themes/startify.lua#L28
+---@param opts? possession.AlphaWorkspaceLayoutOpts
 function M.alpha_workspace_layout(workspace_specs, create_button, opts)
     opts = vim.tbl_extend('force', {
         title_highlight = 'Type',
