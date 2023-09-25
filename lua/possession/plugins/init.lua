@@ -8,6 +8,7 @@ local plugins = {
     'delete_hidden_buffers',
     'nvim_tree',
     'neo_tree',
+    'symbols_outline',
     'tabby',
     'dap',
     'delete_buffers',

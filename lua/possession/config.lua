@@ -57,6 +57,7 @@ local function defaults()
             },
             nvim_tree = true,
             neo_tree = true,
+            symbols_outline = true,
             tabby = true,
             dap = true,
             delete_buffers = false,
