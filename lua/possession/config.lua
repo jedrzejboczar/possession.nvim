@@ -56,6 +56,7 @@ local function defaults()
                 force = false,  -- or fun(buf): boolean
             },
             nvim_tree = true,
+            neo_tree = true,
             tabby = true,
             dap = true,
             delete_buffers = false,

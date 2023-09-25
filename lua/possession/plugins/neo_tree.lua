@@ -2,15 +2,14 @@ local M = {}
 
 local utils = require('possession.utils')
 
-local has_plugin = utils.bind(utils.has_module, 'nvim-tree')
+local has_plugin = utils.bind(utils.has_module, 'neo-tree')
 
 local find_tab_buf = function(tab)
     return utils.find_tab_buf(tab, function(buf)
-        return vim.api.nvim_buf_get_option(buf, 'filetype') == 'NvimTree'
+        return vim.api.nvim_buf_get_option(buf, 'filetype') == 'neo-tree'
     end)
 end
 
--- Close nvim-tree windows in given tab (id), return true if closed.
 local function close_tree(tab)
     local buf = find_tab_buf(tab)
     if buf then
@@ -20,11 +19,14 @@ local function close_tree(tab)
     return false
 end
 
--- Open nvim-tree in given tab numbers.
 local function open_tree(tab_nums)
     local tabs = utils.tab_nums_to_ids(tab_nums)
     utils.for_each_tab(tabs, function(tab)
-        require('nvim-tree.api').tree.open()
+        vim.cmd('Neotree show')
+        -- Need to wait as neo-tree does some async stuff
+        vim.wait(100, function()
+            return find_tab_buf(tab) ~= nil
+        end)
     end)
 end
 

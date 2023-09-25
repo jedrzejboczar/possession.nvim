@@ -153,6 +153,18 @@ function M.tab_num_to_id_map()
     return mapping
 end
 
+--- Convert tab numbers to ids (handles), lists may have different lengths if some tabs were not found!
+---@param tab_nums integer[]
+---@return integer[] tab_ids
+function M.tab_nums_to_ids(tab_nums)
+    local num2id = M.tab_num_to_id_map()
+    local ids = {}
+    for _, num in ipairs(tab_nums) do -- vim.tbl_map can leave nil "holes" inside the list
+        table.insert(ids, num2id[num])
+    end
+    return ids
+end
+
 --- Return function that checks if values have given type/types.
 --- Used to support older versions of vim.validate that only accept single type or a validator function.
 ---@param types string|string[]
@@ -222,6 +234,29 @@ function M.find_tab_buf(tab, cond)
             return buf
         end
     end
+end
+
+--- Executed fn in each tab, then restore to initial tab
+---@param tabs integer[] tab ids, not tab numbers
+---@param fn fun(tab: integer)
+function M.for_each_tab(tabs, fn)
+    local initial = vim.api.nvim_get_current_tabpage()
+
+    for _, tab in ipairs(tabs) do
+        if vim.api.nvim_tabpage_is_valid(tab) then
+            vim.api.nvim_set_current_tabpage(tab)
+            local win = vim.api.nvim_get_current_win()
+
+            fn(tab)
+
+            -- Try to restore window
+            if vim.api.nvim_win_is_valid(win) then
+                vim.api.nvim_set_current_win(win)
+            end
+        end
+    end
+
+    vim.api.nvim_set_current_tabpage(initial)
 end
 
 return M
