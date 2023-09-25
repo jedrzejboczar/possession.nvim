@@ -134,4 +134,101 @@ function M.implement_basic_hooks(fn)
     }
 end
 
+---@class possession.FileTreePluginOpts
+---@field buf_is_plugin fun(buf: integer): boolean check if given buffer belongs to the plugin, e.g. by filetype
+---@field open_in_tab fun(tab: integer) open the plugin in tab (tab is the current tab when this function is called)
+---@field close_in_tab? fun(tab: integer): boolean if not provided then deletes all plugin buffers
+---@field has_plugin? string|fun(): boolean if it is a string will try to require lua module, if nil then assume true
+
+--- Generate implementation for plugins that just open "docks" per tab, like file-trees (nvim-tree, neo-tree, ...)
+---@param name string
+---@param opts possession.FileTreePluginOpts
+function M.implement_file_tree_plugin_hooks(name, opts)
+    local find_tab_buf = function(tab)
+        return utils.find_tab_buf(tab, opts.buf_is_plugin)
+    end
+
+    local close_in_tab
+    if opts.close_in_tab then
+        -- use custom close implementation
+        close_in_tab = function(tab)
+            local buf = find_tab_buf(tab)
+            if buf and opts.close_in_tab(tab) then
+                return true
+            end
+            return false
+        end
+    else
+        -- default implementation - delete all buffers
+        close_in_tab = function(tab)
+            local max_bufs = 100 -- avoid infinite loops when something is wrong
+            local n = 0
+
+            local buf = find_tab_buf(tab)
+            while buf and n < 10 do
+                if n >= max_bufs then
+                    utils.warn('Could not close plugin %s in tab %d after %d attempts', name, tab, n)
+                    return false
+                end
+
+                vim.api.nvim_buf_delete(buf, { force = true })
+                buf = find_tab_buf(tab)
+                n = n + 1
+            end
+
+            return n > 0
+        end
+    end
+
+    local open_in_tab_nums = function(tab_nums)
+        local tabs = utils.tab_nums_to_ids(tab_nums)
+        utils.for_each_tab(tabs, opts.open_in_tab)
+    end
+
+    local has_plugin = function()
+        if not opts.has_plugin then
+            return true
+        elseif type(opts.has_plugin) == 'function' then
+            return opts.has_plugin
+        else
+            local mod = opts.has_plugin --[[@as string]]
+            return utils.has_module(mod)
+        end
+    end
+
+    return {
+        before_save = function(_opts, _name)
+            if not has_plugin() then
+                return {}
+            end
+
+            -- First close in tabs, then get numbers, filtering out any tabs that were closed.
+            -- TODO: restore tabs that have been closed? probably not worth to handle this edge case
+            local tabs = vim.tbl_filter(close_in_tab, vim.api.nvim_list_tabpages())
+            local nums = utils.filter_map(function(tab)
+                local valid = vim.api.nvim_tabpage_is_valid(tab)
+                return valid and vim.api.nvim_tabpage_get_number(tab) or nil
+            end, tabs)
+
+            return {
+                tabs = nums,
+            }
+        end,
+        after_save = function(_opts, _name, plugin_data, _aborted)
+            if not has_plugin() then
+                return
+            end
+
+            if plugin_data and plugin_data.tabs then
+                open_in_tab_nums(plugin_data.tabs)
+            end
+        end,
+        after_load = function(_opts, _name, plugin_data)
+            if plugin_data and plugin_data.tabs and has_plugin() then
+                open_in_tab_nums(plugin_data.tabs)
+            end
+        end,
+    }
+end
+
 return M
