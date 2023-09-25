@@ -234,6 +234,16 @@ This plugin forcefully deletes all buffers before loading new session (on
 Saves nvim-tree explorer windows and restores them when loading the session.
 Currently no configuration options beside enabling/disabling are available.
 
+                                                         *possession-neo-tree*
+
+Saves neo-tree windows and restores them when loading the session.
+
+                                                  *possession-symbols-outline*
+
+Saves symbols-outline.nvim windows and restores when loading session.
+NOTE: currently this only works for a single outline due to
+symbols-outline.nvim limitations
+
                                                             *possession-tabby*
 
 Saves tabby.nvim tab page names when saving the sessions and restores them

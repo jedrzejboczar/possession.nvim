@@ -109,6 +109,8 @@ require('possession').setup {
             force = false,  -- or fun(buf): boolean
         },
         nvim_tree = true,
+        neo_tree = true,
+        symbols_outline = true,
         tabby = true,
         dap = true,
         delete_buffers = false,
