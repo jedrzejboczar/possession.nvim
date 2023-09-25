@@ -2,16 +2,20 @@ local M = {}
 
 local utils = require('possession.utils')
 
-local has_nvim_tree = pcall(require, 'nvim-tree')
+local has_plugin = utils.bind(utils.has_module, 'nvim-tree')
+
+local find_tab_buf = function(tab)
+    return utils.find_tab_buf(tab, function(buf)
+        return vim.api.nvim_buf_get_option(buf, 'filetype') == 'NvimTree'
+    end)
+end
 
 -- Close nvim-tree windows in given tab (id), return true if closed.
 local function close_tree(tab)
-    for _, win in ipairs(vim.api.nvim_tabpage_list_wins(tab)) do
-        local buf = vim.api.nvim_win_get_buf(win)
-        if vim.api.nvim_buf_get_option(buf, 'filetype') == 'NvimTree' then
-            vim.api.nvim_buf_delete(buf, { force = true })
-            return true
-        end
+    local buf = find_tab_buf(tab)
+    if buf then
+        vim.api.nvim_buf_delete(buf, { force = true })
+        return true
     end
     return false
 end
@@ -41,7 +45,7 @@ local function open_tree(tab_nums)
 end
 
 function M.before_save(opts, name)
-    if not has_nvim_tree then
+    if not has_plugin() then
         return {}
     end
 
@@ -59,7 +63,7 @@ function M.before_save(opts, name)
 end
 
 function M.after_save(opts, name, plugin_data, aborted)
-    if not has_nvim_tree then
+    if not has_plugin() then
         return
     end
 
@@ -69,11 +73,7 @@ function M.after_save(opts, name, plugin_data, aborted)
 end
 
 function M.after_load(opts, name, plugin_data)
-    if not has_nvim_tree then
-        return
-    end
-
-    if plugin_data and plugin_data.tabs then
+    if plugin_data and plugin_data.tabs and has_plugin() then
         open_tree(plugin_data.tabs)
     end
 end
