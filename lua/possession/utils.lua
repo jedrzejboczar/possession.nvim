@@ -206,4 +206,22 @@ function M.delete_all_buffers(force)
     vim.lsp.stop_client(vim.lsp.get_active_clients())
 end
 
+---@param mod string
+---@return boolean
+function M.has_module(mod)
+    return not not vim.F.npcall(require, mod)
+end
+
+---@param tab integer
+---@param cond fun(buf: integer): boolean
+---@return integer? buf
+function M.find_tab_buf(tab, cond)
+    for _, win in ipairs(vim.api.nvim_tabpage_list_wins(tab)) do
+        local buf = vim.api.nvim_win_get_buf(win)
+        if cond(buf) then
+            return buf
+        end
+    end
+end
+
 return M

@@ -2,9 +2,7 @@ local M = {}
 
 local utils = require('possession.utils')
 
-local has_plugin = function()
-    return pcall(require, 'dap')
-end
+local has_plugin = utils.bind(utils.has_module, 'dap')
 
 function M.before_save(opts, name)
     if not has_plugin() then
