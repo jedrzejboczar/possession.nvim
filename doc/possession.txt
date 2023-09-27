@@ -254,6 +254,9 @@ Currently no configuration options beside enabling/disabling are available.
 
 Saves nvim-dap breakpoints by filename and restores them when loading a
 session.
+                                                            *possession-dapui*
+
+Closes and restores dapui view in a tab.
 
                                                         *possession-telescope*
 

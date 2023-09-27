@@ -113,6 +113,7 @@ require('possession').setup {
         symbols_outline = true,
         tabby = true,
         dap = true,
+        dapui = true,
         delete_buffers = false,
     },
     telescope = {
