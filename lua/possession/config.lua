@@ -60,6 +60,7 @@ local function defaults()
             symbols_outline = true,
             tabby = true,
             dap = true,
+            dapui = true,
             delete_buffers = false,
         },
         telescope = {
