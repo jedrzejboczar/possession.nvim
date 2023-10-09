@@ -31,7 +31,7 @@ end
 
 function M.after_load(opts, name, plugin_data)
     local tab_names = plugin_data.tab_names or {}
-    if #tab_names == 0 or not has_plugin() then
+    if vim.tbl_count(tab_names) == 0 or not has_plugin() then
         return
     end
 
