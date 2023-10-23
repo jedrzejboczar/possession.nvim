@@ -117,6 +117,7 @@ require('possession').setup {
         delete_buffers = false,
     },
     telescope = {
+        show_previewer = true,
         list = {
             default_action = 'load',
             mappings = {

@@ -264,6 +264,10 @@ telescope~
     `table`
     Configuration for builtin possession telescope pickers.
 
+telescope.show_previewer~
+    `boolean`
+    Show previewer for each session.
+
 telescope.list~
     `table`
     List available sessions.
