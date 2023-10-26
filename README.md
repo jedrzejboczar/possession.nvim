@@ -117,7 +117,11 @@ require('possession').setup {
         delete_buffers = false,
     },
     telescope = {
-        previewer = nil,   -- or false to disable previewer
+        previewer = {
+            enabled = true,
+            previewer = 'pretty', -- or 'raw' or fun(opts): Previewer
+            wrap_lines = true,
+        },
         list = {
             default_action = 'load',
             mappings = {

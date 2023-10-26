@@ -1,5 +1,6 @@
 local M = {}
 
+local Path = require('plenary.path')
 local config = require('possession.config')
 local logging = require('possession.logging')
 
@@ -257,6 +258,62 @@ function M.for_each_tab(tabs, fn)
     end
 
     vim.api.nvim_set_current_tabpage(initial)
+end
+
+--- Make relative path (only if 'path' is child of 'rel_to' or 'force' is set), replace '~' unless normalize=false
+---@param path string|Path
+---@param rel_to string|Path
+---@param opts? { force?: boolean, normalize?: boolean } defaults to force=false, normalize=true
+---@return string
+function M.relative_path(path, rel_to, opts)
+    opts = vim.tbl_extend('force', {
+        force = false,
+        normalize = true,
+    }, opts or {})
+
+    path = Path:new(path)
+    rel_to = Path:new(rel_to)
+
+    if opts.force or vim.startswith(path:absolute(), rel_to:absolute()) then
+        local cwd = rel_to:absolute()
+        if opts.normalize then
+            return path:normalize(cwd)
+        else
+            return path:make_relative(cwd).filename
+        end
+    else
+        if opts.normalize then
+            return path:normalize()
+        else
+            return path.filename
+        end
+    end
+end
+
+---@param strings string[]
+---@return string
+function M.find_common_prefix(strings)
+    if #strings == 0 then
+        return ''
+    end
+    if #strings == 1 then
+        return strings[1]
+    end
+
+    -- Simple algorithm: sort the list, then find longest prefix between two most different strings
+    strings = vim.deepcopy(strings)
+    table.sort(strings)
+
+    local max_len = math.min(#strings[1], #strings[#strings])
+    local len = 0
+    for i = 1, max_len do
+        if strings[1]:sub(i, i) ~= strings[#strings]:sub(i, i) then
+            break
+        end
+        len = i
+    end
+
+    return strings[1]:sub(1, len)
 end
 
 return M
