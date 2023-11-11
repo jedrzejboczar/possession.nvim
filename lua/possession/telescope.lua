@@ -94,7 +94,7 @@ function M.list(opts)
             prompt_title = 'Sessions',
             finder = get_finder(),
             sorter = conf.generic_sorter(opts),
-            previewer = session_previewer(opts),
+            previewer = vim.F.if_nil(config.telescope.previewer, session_previewer(opts)),
             attach_mappings = function(prompt_buf, map)
                 local refresh = function()
                     local picker = action_state.get_current_picker(prompt_buf)

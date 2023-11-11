@@ -264,6 +264,11 @@ telescope~
     `table`
     Configuration for builtin possession telescope pickers.
 
+telescope.previewer~
+    `string`
+    Show previewer for each session. By default is `nil`, which shows the
+    previewer. `false` disables previewer.
+
 telescope.list~
     `table`
     List available sessions.
