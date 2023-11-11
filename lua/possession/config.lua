@@ -80,6 +80,11 @@ end
 
 local config = defaults()
 
+-- Keys that cannot be checked automatically because they are nil by default
+local nil_keys = {
+    ['telescope.previewer'] = true,
+}
+
 local function warn_on_unknown_keys(conf)
     local unknown = {}
 
@@ -97,7 +102,10 @@ local function warn_on_unknown_keys(conf)
             -- ignore list-like tables
             if type(key) == 'string' then
                 if ref == nil or ref[key] == nil then
-                    table.insert(unknown, state.path .. key)
+                    local path = state.path .. key
+                    if ref[key] == nil and not nil_keys[path] then
+                        table.insert(unknown, path)
+                    end
                 elseif type(val) == 'table' then
                     traverse(val, ref[key], {
                         path = state.path .. key .. '.',
