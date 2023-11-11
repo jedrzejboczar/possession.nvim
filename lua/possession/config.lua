@@ -64,7 +64,7 @@ local function defaults()
             delete_buffers = false,
         },
         telescope = {
-            previewer = nil,
+            previewer = nil,   -- or false to disable previewer
             list = {
                 default_action = 'load',
                 mappings = {
