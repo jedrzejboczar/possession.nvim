@@ -264,11 +264,34 @@ telescope~
     `table`
     Configuration for builtin possession telescope pickers.
 
-telescope.previewer~
-    `string|Previewer`
-    Show previewer for each session. By default is `nil`, which shows the
-    default previewer. `false` disables previewer. To use a custom previewer
-    pass a telescope Previewer object (see source code for example).
+telescope.previewer.enabled~
+    `boolean`
+    Show previewer in telescope picker.
+
+telescope.previewer.previewer~
+    `'pretty'|'raw'|function(opts):Previewer`
+    Select previewer to use, either one of the ones included in this plugin or
+    a custom previewer that will be returned from the function.
+
+telescope.previewer.wrap_lines~
+    `boolean`
+    |wrap| lines in the preview window.
+
+telescope.previewer.include_empty_plugin_data~
+    `boolean`
+    Remove keys in `plugin_data` with no important data.
+
+telescope.previewer.cwd_colors.cwd~
+    `string`
+    Color to use when highlighting sesion cwd in paths. Interpreted as hex
+    color if it starts with `#`, otherwise as a name of a highlight group.
+
+telescope.previewer.cwd_colors.tab_cwd~
+    `string[]`
+    Colors to use when highlighting sesion tab_cwd in paths. Interpreted as hex
+    color if it starts with `#`, otherwise as a name of a highlight group.
+    The colors will be assigned to consecutive tab cwds, modulo-wrapping to
+    start if there are move tab cwds than colors defined for this settings.
 
 telescope.list~
     `table`

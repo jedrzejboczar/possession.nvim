@@ -64,7 +64,16 @@ local function defaults()
             delete_buffers = false,
         },
         telescope = {
-            previewer = nil,   -- or false to disable previewer
+            previewer = {
+                enabled = true,
+                previewer = 'pretty', -- or 'raw' or fun(opts): Previewer
+                wrap_lines = true,
+                include_empty_plugin_data = false,
+                cwd_colors = {
+                    cwd = 'Comment',
+                    tab_cwd = { '#cc241d', '#b16286', '#d79921', '#689d6a', '#d65d0e', '#458588' }
+                }
+            },
             list = {
                 default_action = 'load',
                 mappings = {
@@ -128,8 +137,18 @@ local function warn_on_unknown_keys(conf)
     end
 end
 
+local function fix_compatibility(opts)
+    if type(vim.tbl_get(opts, 'telescope', 'previewer')) == 'boolean' then
+        opts.telescope.previewer = {
+            enable = opts.telescope.previewer,
+        }
+    end
+end
+
 function M.setup(opts)
     warn_on_unknown_keys(opts)
+
+    fix_compatibility(opts)
 
     local new_config = vim.tbl_deep_extend('force', {}, defaults(), opts or {})
     -- Do _not_ replace the table pointer with `config = ...` because this

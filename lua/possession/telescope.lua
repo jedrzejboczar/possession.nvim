@@ -21,8 +21,14 @@ local function session_previewer(opts)
             return entry.value.name
         end,
         define_preview = function(self, entry, status)
+            local wrap = config.telescope.previewer.wrap_lines
+            if wrap == true and vim.api.nvim_win_is_valid(self.state.winid) then
+                vim.api.nvim_win_set_option(self.state.winid, 'wrap', true)
+            end
             if self.state.bufname ~= entry.value.name then
-                display.in_buffer(entry.value, self.state.bufnr)
+                display.in_buffer(entry.value, self.state.bufnr, config.telescope.previewer.previewer, {
+                    include_empty_plugin_data = config.telescope.previewer.include_empty_plugin_data,
+                })
             end
         end,
     }
@@ -89,12 +95,21 @@ function M.list(opts)
         }
     end
 
+    local previewer
+    if config.telescope.previewer.enabled == false then
+        previewer = false
+    elseif type(config.telescope.previewer.previewer) == 'function' then
+        previewer = config.telescope.previewer.previewer(opts)
+    else
+        previewer = session_previewer(opts)
+    end
+
     pickers
         .new(opts, {
             prompt_title = 'Sessions',
             finder = get_finder(),
             sorter = conf.generic_sorter(opts),
-            previewer = vim.F.if_nil(config.telescope.previewer, session_previewer(opts)),
+            previewer = previewer,
             attach_mappings = function(prompt_buf, map)
                 local refresh = function()
                     local picker = action_state.get_current_picker(prompt_buf)

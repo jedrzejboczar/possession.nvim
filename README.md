@@ -117,7 +117,16 @@ require('possession').setup {
         delete_buffers = false,
     },
     telescope = {
-        previewer = nil,   -- or false to disable previewer
+        previewer = {
+            enabled = true,
+            previewer = 'pretty', -- or 'raw' or fun(opts): Previewer
+            wrap_lines = true,
+            include_empty_plugin_data = false,
+            cwd_colors = {
+                cwd = 'Comment',
+                tab_cwd = { '#cc241d', '#b16286', '#d79921', '#689d6a', '#d65d0e', '#458588' }
+            }
+        },
         list = {
             default_action = 'load',
             mappings = {

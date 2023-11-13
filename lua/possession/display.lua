@@ -1,5 +1,7 @@
 local M = {}
 
+local Path = require('plenary.path')
+local config = require('possession.config')
 local query = require('possession.query')
 local utils = require('possession.utils')
 
@@ -29,10 +31,74 @@ local function patch_treesitter_injections(buf)
     parser._injection_query = new_query
 end
 
+local function with_match(pattern, fn)
+    return function(line)
+        local m = line:match(pattern)
+        if m then
+            fn(m)
+            return true
+        end
+    end
+end
+
+---@class possession.MkSessionInfo
+---@field buffers string[]
+---@field cwd string?
+---@field tab_cwd string[]
+---@field win_cwd string[]
+
+--- Parse vimscript output of mksession to get information about buffers/workdirs
+---@param vimscript string
+---@return possession.MkSessionInfo
+function M.parse_mksession(vimscript)
+    local info = { buffers = {}, cwd = nil, tab_cwd = {}, win_cwd = {} }
+
+    local parsers = {
+        with_match('^badd %S+ (.*)$', function(m)
+            -- Paths in mksession are relative if they're under cwd, so convert to absolute
+            local path = Path:new(vim.fn.expand(m))
+            if not path:is_absolute() and info.cwd then
+                path = Path:new(info.cwd) / path
+            end
+            info.buffers[path:absolute()] = true
+        end),
+        with_match('^cd (.*)$', function(m)
+            if info.cwd then
+                utils.warn('Found multiple "cd" in mksession vimscript')
+            end
+            info.cwd = vim.fn.expand(m)
+        end),
+        with_match('| tcd (.*) | endif$', function(m)
+            info.tab_cwd[vim.fn.expand(m)] = true
+        end),
+        with_match('^lcd (.*)$', function(m)
+            info.win_cwd[vim.fn.expand(m)] = true
+        end),
+    }
+
+    for line in vim.gsplit(vimscript, '\n', { plain = true, trimempty = true }) do
+        for _, parser in ipairs(parsers) do
+            if parser(line) then
+                break
+            end
+        end
+    end
+
+    return {
+        buffers = vim.tbl_keys(info.buffers),
+        cwd = info.cwd,
+        tab_cwd = vim.tbl_keys(info.tab_cwd),
+        win_cwd = vim.tbl_keys(info.win_cwd),
+    }
+end
+
 ---@class possession.EchoSessionsOpts
 ---@field sessions? table[]
 ---@field vimscript? boolean include vimscript in the output
 ---@field user_data? boolean include user_data in the output
+---@field buffers? boolean include buffers from parsed vimscript
+---@field buffers_short? boolean show buffer paths normalized and relative to session cwd
+---@field tab_cwd? boolean include tab cwds from parsed vimscript
 
 --- Print a list of sessions as Vim message
 ---@param opts? possession.EchoSessionsOpts
@@ -44,6 +110,13 @@ function M.echo_sessions(opts)
     }, opts or {})
 
     local sessions = opts.sessions or query.as_list()
+
+    local info = {}
+    if opts.buffers or opts.tab_cwd then
+        for _, data in ipairs(sessions) do
+            info[data] = M.parse_mksession(data.vimscript)
+        end
+    end
 
     local chunks = {}
     local add = function(parts)
@@ -66,6 +139,26 @@ function M.echo_sessions(opts)
 
         add { { 'Cwd: ', 'Title' }, data.cwd, '\n' }
 
+        if opts.tab_cwd then
+            add { { 'Tab cwds:', 'Title' }, '\n' }
+            for _, cwd in ipairs(info[data].tab_cwd) do
+                add { '  ', cwd, '\n' }
+            end
+        end
+
+        if opts.buffers then
+            add { { 'Buffers:', 'Title' }, '\n' }
+            local paths = {}
+            for _, buf in ipairs(info[data].buffers) do
+                local path = opts.buffers_short and utils.relative_path(buf, data.cwd) or Path:new(buf):absolute()
+                table.insert(paths, path)
+            end
+            table.sort(paths)
+            for _, path in ipairs(paths) do
+                add { '  ', path, '\n' }
+            end
+        end
+
         if opts.user_data then
             local s = vim.inspect(data.user_data, { indent = '    ' })
             local lines = utils.split_lines(s)
@@ -85,11 +178,10 @@ function M.echo_sessions(opts)
     vim.api.nvim_echo(chunks, false, {})
 end
 
---- Display session data in given buffer.
---- Data may optionally contain "file" key with path to session file.
 ---@param data table
 ---@param buf integer
-function M.in_buffer(data, buf)
+---@param opts table
+local function in_buffer_raw(data, buf, opts)
     -- (a bit hacky) way to easily get syntax highlighting - just format everything
     -- as valid Lua code and set filetype.
 
@@ -130,6 +222,156 @@ function M.in_buffer(data, buf)
     end
 
     vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+end
+
+local function buf_display_builder(buf)
+    local lines = {}
+    local highlights = {}
+    return {
+        ---@param parts (string|{ [1]: string, [2]: string })[] line strings or tuples { string, hl_group }
+        ---@return integer row 0-based index of the added line
+        line = function(parts)
+            local col = 0
+            local line_parts = {}
+            for _, part in ipairs(parts) do
+                local hl
+                if type(part) == 'table' then
+                    part, hl = unpack(part)
+                end
+                local len = vim.fn.strdisplaywidth(part)
+                if hl then
+                    local srow, scol, erow, ecol = #lines, col, #lines, col + len
+                    table.insert(highlights, { srow, scol, erow, ecol, hl })
+                end
+                col = col + len
+                table.insert(line_parts, part)
+            end
+            table.insert(lines, table.concat(line_parts))
+            return #lines - 1
+        end,
+        render = function()
+            vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+
+            local ns = vim.api.nvim_create_namespace('possession.display')
+            for _, hl in ipairs(highlights) do
+                local srow, scol, erow, ecol, hl_group = unpack(hl)
+                vim.api.nvim_buf_set_extmark(buf, ns, srow, scol, {
+                    end_row = erow,
+                    end_col = ecol,
+                    hl_group = hl_group,
+                })
+            end
+        end,
+    }
+end
+
+local function remove_empty_plugin_data(plugin_data)
+    for plugin, data in pairs(plugin_data) do
+        if type(data) == 'table' and utils.tbl_deep_count(data) == 0 then
+            plugin_data[plugin] = nil
+        end
+    end
+end
+
+local function in_buffer_pretty(data, buf, opts)
+    buf = buf or vim.api.nvim_get_current_buf()
+    data = vim.deepcopy(data)
+
+    local info = M.parse_mksession(data.vimscript)
+
+    local builder = buf_display_builder(buf)
+
+    local normalize = function(s)
+        return vim.fn.fnamemodify(s, ':~')
+    end
+
+    local colors = {}
+    for i, tab_cwd in ipairs(info.tab_cwd) do
+        local n = #config.telescope.previewer.cwd_colors.tab_cwd
+        colors[normalize(tab_cwd)] = string.format('PossessionPreviewTabCwd%d', ((i - 1) % n) + 1)
+    end
+    colors[normalize(data.cwd)] = 'PossessionPreviewCwd'
+
+    local function paths_list(paths)
+        paths = vim.tbl_map(normalize, paths)
+        table.sort(paths)
+
+        local function add(path)
+            -- try to match longest cwd and use it's color
+            local longest = { dir = '', color = '' }
+            for dir, color in pairs(colors) do
+                if #dir > #longest.dir and vim.startswith(path, dir) then
+                    longest.dir = dir
+                    longest.color = color
+                end
+            end
+            if longest.dir ~= '' then
+                builder.line { { path:sub(1, #longest.dir), longest.color }, path:sub(#longest.dir + 1) }
+            else
+                builder.line { path }
+            end
+        end
+
+        for _, path in ipairs(paths) do
+            add(path)
+        end
+    end
+
+    builder.line { { 'Name: ', 'Title' }, data.name }
+    builder.line { { 'File: ', 'Title' }, normalize(data.file) }
+    builder.line { { 'Cwd: ', 'Title' }, { normalize(data.cwd), colors[normalize(data.cwd)] } }
+    builder.line {}
+
+    if #info.tab_cwd > 0 then
+        builder.line { { 'Tab cwds:', 'Title' } }
+        table.sort(info.tab_cwd)
+        paths_list(info.tab_cwd)
+        builder.line {}
+    end
+
+    builder.line { { 'Buffers:', 'Title' } }
+    paths_list(info.buffers)
+
+    if vim.tbl_count(data.user_data) > 0 then
+        builder.line {}
+        builder.line { { 'User data:', 'Title' } }
+        local user_data = vim.inspect(data.user_data, { indent = '  ' })
+        for _, line in ipairs(utils.split_lines(user_data)) do
+            builder.line { line }
+        end
+    end
+
+    if not opts.include_empty_plugin_data then
+        remove_empty_plugin_data(data.plugins)
+    end
+    if vim.tbl_count(data.plugins) > 0 then
+        builder.line {}
+        builder.line { { 'Plugin data:', 'Title' } }
+        local plugin_data = vim.inspect(data.plugins, { indent = '  ' })
+        for _, line in ipairs(utils.split_lines(plugin_data)) do
+            builder.line { line }
+        end
+    end
+
+    builder.render()
+end
+
+--- Display session data in given buffer.
+--- Data may optionally contain "file" key with path to session file.
+---@param data table
+---@param buf integer
+---@param mode? 'raw'|'pretty' defaults to 'raw'
+---@param opts? table
+function M.in_buffer(data, buf, mode, opts)
+    mode = mode or 'raw'
+    opts = opts or {}
+    if mode == 'raw' then
+        in_buffer_raw(data, buf, opts)
+    elseif mode == 'pretty' then
+        in_buffer_pretty(data, buf, opts)
+    else
+        assert(false, mode)
+    end
 end
 
 return M

@@ -2,6 +2,7 @@ local M = {}
 
 local Path = require('plenary.path')
 local config = require('possession.config')
+local utils = require('possession.utils')
 
 --- Get session path
 ---@param name string
@@ -20,11 +21,7 @@ end
 ---@param name string
 function M.session_short(name)
     local path = M.session(name)
-    if vim.startswith(path:absolute(), Path:new(config.session_dir):absolute()) then
-        return path:make_relative(config.session_dir)
-    else
-        return path:absolute()
-    end
+    return utils.relative_path(path, config.session_dir)
 end
 
 --- Get session name from a session file name
