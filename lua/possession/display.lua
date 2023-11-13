@@ -266,7 +266,7 @@ local function buf_display_builder(buf)
 end
 
 local function remove_empty_plugin_data(plugin_data)
-    for plugin, data in pairs(plugin_data) do
+    for plugin, data in pairs(plugin_data or {}) do
         if type(data) == 'table' and utils.tbl_deep_count(data) == 0 then
             plugin_data[plugin] = nil
         end
@@ -341,6 +341,7 @@ local function in_buffer_pretty(data, buf, opts)
         end
     end
 
+    data.plugins = data.plugins or {}
     if not opts.include_empty_plugin_data then
         remove_empty_plugin_data(data.plugins)
     end
