@@ -1,6 +1,7 @@
 local M = {}
 
 local Path = require('plenary.path')
+local config = require('possession.config')
 local query = require('possession.query')
 local utils = require('possession.utils')
 
@@ -272,13 +273,6 @@ local function remove_empty_plugin_data(plugin_data)
     end
 end
 
-local function common_paths_prefix(paths)
-    local common = #paths <= 1 and '' or utils.find_common_prefix(paths)
-    -- remove until last separator
-    local sep_offset = common:reverse():find(utils.path_sep) or 0
-    return common:sub(1, #common - sep_offset)
-end
-
 local function in_buffer_pretty(data, buf, opts)
     buf = buf or vim.api.nvim_get_current_buf()
     data = vim.deepcopy(data)
@@ -291,18 +285,41 @@ local function in_buffer_pretty(data, buf, opts)
         return vim.fn.fnamemodify(s, ':~')
     end
 
+    local colors = {}
+    for i, tab_cwd in ipairs(info.tab_cwd) do
+        local n = #config.telescope.previewer.cwd_colors.tab_cwd
+        colors[normalize(tab_cwd)] = string.format('PossessionPreviewTabCwd%d', ((i - 1) % n) + 1)
+    end
+    colors[normalize(data.cwd)] = 'PossessionPreviewCwd'
+
     local function paths_list(paths)
         paths = vim.tbl_map(normalize, paths)
         table.sort(paths)
-        local common = common_paths_prefix(paths)
+
+        local function add(path)
+            -- try to match longest cwd and use it's color
+            local longest = { dir = '', color = '' }
+            for dir, color in pairs(colors) do
+                if #dir > #longest.dir and vim.startswith(path, dir) then
+                    longest.dir = dir
+                    longest.color = color
+                end
+            end
+            if longest.dir ~= '' then
+                builder.line { { path:sub(1, #longest.dir), longest.color }, path:sub(#longest.dir + 1) }
+            else
+                builder.line { path }
+            end
+        end
+
         for _, path in ipairs(paths) do
-            builder.line { { path:sub(1, #common), 'Comment' }, path:sub(#common + 1) }
+            add(path)
         end
     end
 
     builder.line { { 'Name: ', 'Title' }, data.name }
     builder.line { { 'File: ', 'Title' }, normalize(data.file) }
-    builder.line { { 'Cwd: ', 'Title' }, normalize(data.cwd) }
+    builder.line { { 'Cwd: ', 'Title' }, { normalize(data.cwd), colors[normalize(data.cwd)] } }
     builder.line {}
 
     if #info.tab_cwd > 0 then

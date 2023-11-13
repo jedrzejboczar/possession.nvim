@@ -40,6 +40,21 @@ local function setup(opts)
             commands.migrate(o.fargs[1])
         end)
     end
+
+    local function set_hl(name, color)
+        local val = { default = true }
+        if vim.startswith(color, '#') then
+            val.fg = color
+        else
+            val.link = color
+        end
+        vim.api.nvim_set_hl(0, name, val)
+    end
+
+    set_hl('PossessionPreviewCwd', config.telescope.previewer.cwd_colors.cwd)
+    for i, color in ipairs(config.telescope.previewer.cwd_colors.tab_cwd) do
+        set_hl(string.format('PossessionPreviewTabCwd%d', i), color)
+    end
 end
 
 return {
