@@ -26,7 +26,9 @@ local function session_previewer(opts)
                 vim.api.nvim_win_set_option(self.state.winid, 'wrap', true)
             end
             if self.state.bufname ~= entry.value.name then
-                display.in_buffer(entry.value, self.state.bufnr, config.telescope.previewer.previewer)
+                display.in_buffer(entry.value, self.state.bufnr, config.telescope.previewer.previewer, {
+                    include_empty_plugin_data = config.telescope.previewer.include_empty_plugin_data,
+                })
             end
         end,
     }

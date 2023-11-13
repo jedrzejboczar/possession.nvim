@@ -316,4 +316,24 @@ function M.find_common_prefix(strings)
     return strings[1]:sub(1, len)
 end
 
+--- Recursively count number of non-nil leaves in nested table
+---@param t table
+---@return integer
+function M.tbl_deep_count(t)
+    local n = 0
+    for _, val in pairs(t) do
+        if type(val) == 'table' then
+            n = n + M.tbl_deep_count(val)
+        elseif val ~= nil then
+            n = n + 1
+        end
+    end
+    return n
+end
+
+M.path_sep = (function()
+    local is_windows = vim.fn.has('win32') == 1 or vim.fn.has('win64') == 1
+    return is_windows and '\\' or '/'
+end)()
+
 return M

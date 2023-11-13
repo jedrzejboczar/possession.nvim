@@ -179,7 +179,8 @@ end
 
 ---@param data table
 ---@param buf integer
-local function in_buffer_raw(data, buf)
+---@param opts table
+local function in_buffer_raw(data, buf, opts)
     -- (a bit hacky) way to easily get syntax highlighting - just format everything
     -- as valid Lua code and set filetype.
 
@@ -227,6 +228,7 @@ local function buf_display_builder(buf)
     local highlights = {}
     return {
         ---@param parts (string|{ [1]: string, [2]: string })[] line strings or tuples { string, hl_group }
+        ---@return integer row 0-based index of the added line
         line = function(parts)
             local col = 0
             local line_parts = {}
@@ -244,6 +246,7 @@ local function buf_display_builder(buf)
                 table.insert(line_parts, part)
             end
             table.insert(lines, table.concat(line_parts))
+            return #lines - 1
         end,
         render = function()
             vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
@@ -261,8 +264,24 @@ local function buf_display_builder(buf)
     }
 end
 
-local function in_buffer_pretty(data, buf)
+local function remove_empty_plugin_data(plugin_data)
+    for plugin, data in pairs(plugin_data) do
+        if type(data) == 'table' and utils.tbl_deep_count(data) == 0 then
+            plugin_data[plugin] = nil
+        end
+    end
+end
+
+local function common_paths_prefix(paths)
+    local common = #paths <= 1 and '' or utils.find_common_prefix(paths)
+    -- remove until last separator
+    local sep_offset = common:reverse():find(utils.path_sep) or 0
+    return common:sub(1, #common - sep_offset)
+end
+
+local function in_buffer_pretty(data, buf, opts)
     buf = buf or vim.api.nvim_get_current_buf()
+    data = vim.deepcopy(data)
 
     local info = M.parse_mksession(data.vimscript)
 
@@ -274,13 +293,8 @@ local function in_buffer_pretty(data, buf)
 
     local function paths_list(paths)
         paths = vim.tbl_map(normalize, paths)
-        local common = #paths <= 1 and '' or utils.find_common_prefix(paths)
-
-        -- remove until last separator
-        local sep = '/' -- \ for windows?
-        local sep_offset = common:reverse():find(sep) or 0
-        common = common:sub(1, #common - sep_offset)
-
+        table.sort(paths)
+        local common = common_paths_prefix(paths)
         for _, path in ipairs(paths) do
             builder.line { { path:sub(1, #common), 'Comment' }, path:sub(#common + 1) }
         end
@@ -310,11 +324,16 @@ local function in_buffer_pretty(data, buf)
         end
     end
 
-    builder.line {}
-    builder.line { { 'Plugin data:', 'Title' } }
-    local plugin_data = vim.inspect(data.plugins, { indent = '  ' })
-    for _, line in ipairs(utils.split_lines(plugin_data)) do
-        builder.line { line }
+    if not opts.include_empty_plugin_data then
+        remove_empty_plugin_data(data.plugins)
+    end
+    if vim.tbl_count(data.plugins) > 0 then
+        builder.line {}
+        builder.line { { 'Plugin data:', 'Title' } }
+        local plugin_data = vim.inspect(data.plugins, { indent = '  ' })
+        for _, line in ipairs(utils.split_lines(plugin_data)) do
+            builder.line { line }
+        end
     end
 
     builder.render()
@@ -325,12 +344,14 @@ end
 ---@param data table
 ---@param buf integer
 ---@param mode? 'raw'|'pretty' defaults to 'raw'
-function M.in_buffer(data, buf, mode)
+---@param opts? table
+function M.in_buffer(data, buf, mode, opts)
     mode = mode or 'raw'
+    opts = opts or {}
     if mode == 'raw' then
-        in_buffer_raw(data, buf)
+        in_buffer_raw(data, buf, opts)
     elseif mode == 'pretty' then
-        in_buffer_pretty(data, buf)
+        in_buffer_pretty(data, buf, opts)
     else
         assert(false, mode)
     end

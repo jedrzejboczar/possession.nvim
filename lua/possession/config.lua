@@ -68,6 +68,7 @@ local function defaults()
                 enabled = true,
                 previewer = 'pretty', -- or 'raw' or fun(opts): Previewer
                 wrap_lines = true,
+                include_empty_plugin_data = false,
             },
             list = {
                 default_action = 'load',
