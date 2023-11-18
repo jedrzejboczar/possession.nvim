@@ -42,6 +42,8 @@ local session_actions = {
     end,
     load = function(prompt_buf, entry, _refresh)
         actions.close(prompt_buf)
+        -- For some reason telescope stays in insert mode (#46)
+        vim.cmd.stopinsert()
         session.load(entry.value.name)
     end,
     delete = function(prompt_buf, entry, refresh)
