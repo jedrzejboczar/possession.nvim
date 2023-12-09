@@ -61,6 +61,7 @@ local function defaults()
             tabby = true,
             dap = true,
             dapui = true,
+            neotest = true,
             delete_buffers = false,
         },
         telescope = {

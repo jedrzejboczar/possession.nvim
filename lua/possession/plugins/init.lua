@@ -10,6 +10,7 @@ local plugins = {
     'neo_tree',
     'symbols_outline',
     'tabby',
+    'neotest',
     'dapui',
     'dap',
     'delete_buffers',
