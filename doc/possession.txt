@@ -258,6 +258,10 @@ session.
 
 Closes and restores dapui view in a tab.
 
+                                                          *possession-neotest*
+
+Closes and restores the summary window.
+
                                                         *possession-telescope*
 
 telescope~
