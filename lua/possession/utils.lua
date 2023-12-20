@@ -336,4 +336,34 @@ M.path_sep = (function()
     return is_windows and '\\' or '/'
 end)()
 
+---@generic F: function
+---@param fn F
+---@param catch? fun(err: string): boolean? return `true` to prevent re-rising the error
+---@param finally? fun(ok: boolean, err: string) runs always after fn and catch
+---@return F
+---@nodiscard
+function M.try(fn, catch, finally)
+    return function(...)
+        local ret = { xpcall(fn, debug.traceback, ...) }
+        local ok, err = unpack(ret)
+
+        if not ok and catch then
+            local caught = catch(err)
+            if caught then
+                ok = true
+            end
+        end
+
+        if finally then
+            finally(ok, err)
+        end
+
+        if not ok then
+            error(err, 2)
+        else
+            return unpack(ret, 2)
+        end
+    end
+end
+
 return M
