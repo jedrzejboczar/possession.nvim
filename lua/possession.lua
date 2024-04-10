@@ -1,5 +1,4 @@
 local config = require('possession.config')
-local session = require('possession.session')
 
 local function cmd(name, args_desc, opts, cb)
     local desc = name .. ' ' .. args_desc
@@ -57,12 +56,18 @@ local function setup(opts)
     end
 end
 
+local function lazy(mod, func)
+    return function(...)
+        return require(mod)[func](...)
+    end
+end
+
 return {
     setup = setup,
-    save = session.save,
-    load = session.load,
-    delete = session.delete,
-    show = session.show,
-    list = session.list,
-    last = session.last,
+    save = lazy('possession.session', 'save'),
+    load = lazy('possession.session', 'load'),
+    delete = lazy('possession.session', 'delete'),
+    show = lazy('possession.session', 'show'),
+    list = lazy('possession.session', 'list'),
+    last = lazy('possession.session', 'last'),
 }

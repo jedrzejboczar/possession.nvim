@@ -1,10 +1,9 @@
 local M = {}
 
-local Path = require('plenary.path')
 local config = require('possession.config')
-local logging = require('possession.logging')
 
 function M.debug(...)
+    local logging = require('possession.logging')
     if config.debug then
         local log_fn = config.silent and logging.to_file or logging.to_all
         local args = { ... }
@@ -17,15 +16,18 @@ function M.debug(...)
 end
 
 function M.info(...)
+    local logging = require('possession.logging')
     local log_fn = config.silent and logging.to_file or logging.to_all
     log_fn(string.format(...), vim.log.levels.INFO)
 end
 
 function M.warn(...)
+    local logging = require('possession.logging')
     logging.to_all(string.format(...), vim.log.levels.WARN)
 end
 
 function M.error(...)
+    local logging = require('possession.logging')
     logging.to_all(string.format(...), vim.log.levels.ERROR)
 end
 
@@ -266,6 +268,8 @@ end
 ---@param opts? { force?: boolean, normalize?: boolean } defaults to force=false, normalize=true
 ---@return string
 function M.relative_path(path, rel_to, opts)
+    local Path = require('plenary.path')
+
     opts = vim.tbl_extend('force', {
         force = false,
         normalize = true,
@@ -364,6 +368,34 @@ function M.try(fn, catch, finally)
             return unpack(ret, 2)
         end
     end
+end
+
+---@param keys string[]
+local function lazy_index(mod, keys)
+    return setmetatable({}, {
+        __call = function(_, ...)
+            local fn = vim.tbl_get(mod(), unpack(keys))
+            return fn(...)
+        end,
+        __index = function(_, key)
+            return lazy_index(mod, vim.list_extend(vim.list_slice(keys), { key }))
+        end,
+    })
+end
+
+---@param path string
+function M.lazy_mod(path)
+    local load = function()
+        return require(path)
+    end
+    local mod
+    mod = setmetatable({ path = path }, {
+        __call = load,
+        __index = function(_, key)
+            return lazy_index(mod, { key })
+        end,
+    })
+    return mod
 end
 
 return M

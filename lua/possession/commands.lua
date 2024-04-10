@@ -1,10 +1,15 @@
 local M = {}
 
-local session = require('possession.session')
-local display = require('possession.display')
-local paths = require('possession.paths')
-local migrate = require('possession.migrate')
 local utils = require('possession.utils')
+
+---@module "possession.session"
+local session = utils.lazy_mod('possession.session')
+---@module "possession.display"
+local display = utils.lazy_mod('possession.display')
+---@module "possession.paths"
+local paths = utils.lazy_mod('possession.paths')
+---@module "possession.migrate"
+local migrate = utils.lazy_mod('possession.migrate')
 
 local function complete_list(candidates, opts)
     opts = vim.tbl_extend('force', {
