@@ -15,7 +15,14 @@ return plugins.implement_file_tree_plugin_hooks('symbols-outline', {
     has_plugin = 'symbols-outline',
     buf_is_plugin = buf_is_plugin,
     open_in_tab = function(tab)
-        vim.cmd('SymbolsOutlineOpen')
+        local _, has_outline = pcall(require, 'outline')
+
+        if has_outline then
+            vim.cmd('OutlineOpen')
+        else
+            vim.cmd('SymbolsOutlineOpen')
+        end
+
         -- Need to wait for some async stuff
         vim.wait(100, function()
             return find_tab_buf(tab) ~= nil
