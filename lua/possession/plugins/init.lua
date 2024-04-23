@@ -9,6 +9,7 @@ local plugins = {
     'nvim_tree',
     'neo_tree',
     'symbols_outline',
+    'outline',
     'tabby',
     'neotest',
     'dapui',

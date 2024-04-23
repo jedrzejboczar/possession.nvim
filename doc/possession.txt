@@ -239,9 +239,10 @@ Currently no configuration options beside enabling/disabling are available.
 Saves neo-tree windows and restores them when loading the session.
 
                                                   *possession-symbols-outline*
+                                                          *possession-outline*
 
-Saves symbols-outline.nvim windows and restores when loading session.
-NOTE: currently this only works for a single outline due to
+Saves symbols-outline.nvim/outline.nvim windows and restores when loading
+session. NOTE: currently this only works for a single outline due to
 symbols-outline.nvim limitations
 
                                                             *possession-tabby*

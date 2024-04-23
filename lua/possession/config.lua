@@ -58,6 +58,7 @@ local function defaults()
             nvim_tree = true,
             neo_tree = true,
             symbols_outline = true,
+            outline = true,
             tabby = true,
             dap = true,
             dapui = true,

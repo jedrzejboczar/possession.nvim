@@ -12,10 +12,10 @@ end
 -- NOTE: currently symbols-outline does not really work on per-tab basis so this does not make sense but in
 -- theory symbols-outline could easily work like other file-trees so stick with this implementation for now
 return plugins.implement_file_tree_plugin_hooks('symbols-outline', {
-    has_plugin = 'symbols-outline',
+    has_plugin = 'outline',
     buf_is_plugin = buf_is_plugin,
     open_in_tab = function(tab)
-        vim.cmd('SymbolsOutlineOpen')
+        vim.cmd('OutlineOpen')
         -- Need to wait for some async stuff
         vim.wait(100, function()
             return find_tab_buf(tab) ~= nil
