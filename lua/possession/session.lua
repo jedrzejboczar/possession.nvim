@@ -6,8 +6,24 @@ local utils = require('possession.utils')
 local plugins = require('possession.plugins')
 local paths = require('possession.paths')
 
----@type string?
-M.session_name = nil
+local state = {
+    ---@type string?
+    session_name = nil,
+}
+
+---@return string?
+function M.get_session_name()
+    return state.session_name
+end
+
+setmetatable(M, {
+    __index = function(_, k)
+        if k == 'session_name' then
+            vim.deprecate('session.session_name', 'session.get_session_name()', '', 'possession')
+            return M.get_session_name()
+        end
+    end,
+})
 
 --- Get last loaded/saved session
 ---@return string|nil path to session file
@@ -97,7 +113,7 @@ function M.save(name, opts)
 
             -- Update link pointing to last session
             M.update_last_session(path)
-            M.session_name = name
+            state.session_name = name
 
             utils.info('Saved as "%s"', short)
         else
@@ -147,18 +163,18 @@ function M.rename(old_name, new_name)
     new_path:write(vim.json.encode(session_data), 'w')
     vim.fn.delete(old_path:absolute())
 
-    if M.session_name == old_name then
-        M.session_name = new_name
+    if state.session_name == old_name then
+        state.session_name = new_name
     end
 
     utils.info('Renamed session "%s" to "%s"', old_name, new_name)
 end
 
 function M.autosave()
-    if M.session_name then
-        if utils.as_function(config.autosave.current)(M.session_name) then
-            utils.debug('Auto-saving session "%s"', M.session_name)
-            M.save(M.session_name, { no_confirm = true })
+    if state.session_name then
+        if utils.as_function(config.autosave.current)(state.session_name) then
+            utils.debug('Auto-saving session "%s"', state.session_name)
+            M.save(state.session_name, { no_confirm = true })
         end
     elseif utils.as_function(config.autosave.tmp)() then
         -- Save as tmp when session is not loaded
@@ -224,7 +240,7 @@ function M.load(name_or_data)
 
     -- Autosave if not loading the auto-saved session itself
     local tmp_name = utils.as_function(config.autosave.tmp)() and utils.as_function(config.autosave.tmp_name)()
-    local autosaved_name = M.session_name or tmp_name
+    local autosaved_name = state.session_name or tmp_name
     if config.autosave.on_load and session_data.name ~= autosaved_name then
         M.autosave()
     end
@@ -251,12 +267,12 @@ function M.load(name_or_data)
     if path then
         M.update_last_session(path)
     end
-    M.session_name = session_data.name
+    state.session_name = session_data.name
 
     if session_data.name == tmp_name then
-        M.session_name = nil
+        state.session_name = nil
     else
-        M.session_name = session_data.name
+        state.session_name = session_data.name
     end
 
     plugins.after_load(session_data.name, plugin_data)
@@ -268,12 +284,12 @@ end
 --- Close currently open session
 ---@param force? boolean delete unsaved buffers
 function M.close(force)
-    if not M.session_name then
+    if not state.session_name then
         return
     end
 
     utils.delete_all_buffers(force)
-    M.session_name = nil
+    state.session_name = nil
 end
 
 ---@class possession.DeleteOpts
@@ -308,8 +324,8 @@ function M.delete(name, opts)
             if vim.fn.delete(path:absolute()) ~= 0 then
                 utils.error('Failed to delete session: "%s"', short)
             else
-                if M.session_name == name then
-                    M.session_name = nil
+                if state.session_name == name then
+                    state.session_name = nil
                 end
                 utils.info('Deleted "%s"', short)
             end
