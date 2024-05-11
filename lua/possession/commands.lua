@@ -40,11 +40,12 @@ M.complete_session = complete_list(utils.throttle(function()
 end, 3000))
 
 local function get_current()
-    if not session.session_name then
+    local name = session.get_session_name()
+    if not name then
         utils.error('No session is currently open - specify session name as an argument')
         return nil
     end
-    return session.session_name
+    return name
 end
 
 local function get_last()
