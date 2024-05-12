@@ -33,11 +33,27 @@ local function complete_list(candidates, opts)
     end
 end
 
--- Limits filesystem access by caching the results by time
-M.complete_session = complete_list(utils.throttle(function()
-    local files = vim.tbl_keys(session.list { no_read = true })
-    return vim.tbl_map(paths.session_name, files)
-end, 3000))
+-- Limits filesystem access by caching the session names per command line access
+---@type table<string, string>?
+local cached_names
+vim.api.nvim_create_autocmd('CmdlineLeave', {
+    group = vim.api.nvim_create_augroup('possession.commands.complete', { clear = true }),
+    callback = function()
+        cached_names = nil
+    end,
+})
+
+local function get_session_names()
+    if not cached_names then
+        cached_names = {}
+        for file, data in pairs(session.list()) do
+            cached_names[file] = data.name
+        end
+    end
+    return cached_names
+end
+
+M.complete_session = complete_list(get_session_names)
 
 local function get_current()
     local name = session.get_session_name()
@@ -54,7 +70,7 @@ local function get_last()
         utils.error('Cannot find last loaded session - specify session name as an argument')
         return nil
     end
-    return paths.session_name(path)
+    return get_session_names()[path]
 end
 
 local function name_or(name, getter)
@@ -76,6 +92,15 @@ function M.load(name)
     if name then
         session.load(name)
     end
+end
+
+---@param no_confirm? boolean
+function M.save_cwd(no_confirm)
+    session.save(paths.cwd_session_name(), { no_confirm = no_confirm })
+end
+
+function M.load_cwd()
+    session.load(paths.cwd_session_name())
 end
 
 local function maybe_input(value, opts, callback)

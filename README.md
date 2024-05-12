@@ -12,7 +12,8 @@ Flexible session management for Neovim.
 * Store arbitrary data in the session file
 * User hooks before/after save/load
 * Uses good old `:mksession` under the hood
-* Configurable automatic save
+* Configurable automatic save (with CWD support)
+* Configurable automatic loading (based on CWD)
 * Out of the box [telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) integration
 * Example integration with [alpha-nvim](https://github.com/goolord/alpha-nvim)
 * Save & restore [nvim-dap](https://github.com/mfussenegger/nvim-dap) breakpoints
@@ -69,14 +70,20 @@ require('possession').setup {
     prompt_no_cr = false,
     autosave = {
         current = false,  -- or fun(name): boolean
+        cwd = false, -- or fun(): boolean
         tmp = false,  -- or fun(): boolean
         tmp_name = 'tmp', -- or fun(): string
         on_load = true,
         on_quit = true,
     },
+    autoload = {
+        cwd = false, -- or fun(): boolean
+    },
     commands = {
         save = 'PossessionSave',
         load = 'PossessionLoad',
+        save_cwd = 'PossessionSaveCwd',
+        load_cwd = 'PossessionLoadCwd',
         rename = 'PossessionRename',
         close = 'PossessionClose',
         delete = 'PossessionDelete',
@@ -194,13 +201,18 @@ Neovim or loading a different session. This behavior is disabled by default, but
 using the `autosave.*` configuration options. Check [doc/possession.txt](./doc/possession.txt)
 for details.
 
+## Auto-load
+
+Sessions can be auto-loaded by setting the `autoload.*` config options. Currently only autoloading
+based on CWD is supported.
+
 ## Statusline
 
 To display the current session name in statusline/winbar/etc. you can define the following function:
 
 ```lua
 local function session_name()
-    return require('possession.session').session_name or ''
+    return require('possession.session').get_session_name() or ''
 end
 ```
 

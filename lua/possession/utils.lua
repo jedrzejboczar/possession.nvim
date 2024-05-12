@@ -407,4 +407,21 @@ function M.lazy_mod(path)
     return mod
 end
 
+---Encode filename removing any potentially problematic characters
+---see: https://github.com/jedrzejboczar/possession.nvim/pull/55
+---@param str string
+function M.percent_encode(str)
+    return string.gsub(str, '([^%w%-%_%.])', function(c)
+        return string.format('%%%02X', string.byte(c))
+    end)
+end
+
+---Decode filename previously encoded with percent_encode
+---@param str string
+function M.percent_decode(str)
+    return string.gsub(str, '%%(%x%x)', function(h)
+        return string.char(tonumber(h, 16))
+    end)
+end
+
 return M

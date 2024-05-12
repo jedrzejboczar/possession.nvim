@@ -16,14 +16,20 @@ local function defaults()
         prompt_no_cr = false,
         autosave = {
             current = false,  -- or fun(name): boolean
+            cwd = false, -- or fun(): boolean
             tmp = false,  -- or fun(): boolean
             tmp_name = 'tmp', -- or fun(): string
             on_load = true,
             on_quit = true,
         },
+        autoload = {
+            cwd = false, -- or fun(): boolean
+        },
         commands = {
             save = 'PossessionSave',
             load = 'PossessionLoad',
+            save_cwd = 'PossessionSaveCwd',
+            load_cwd = 'PossessionLoadCwd',
             rename = 'PossessionRename',
             close = 'PossessionClose',
             delete = 'PossessionDelete',
