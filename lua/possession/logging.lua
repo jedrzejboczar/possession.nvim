@@ -5,7 +5,9 @@ local config = require('possession.config')
 
 local log_date_format = '%F %H:%M:%S'
 local log_levels = vim.deepcopy(vim.log.levels)
-vim.tbl_add_reverse_lookup(log_levels)
+for k, v in pairs(log_levels) do
+  log_levels[v] = k
+end
 
 local logfile
 local get_logfile_done = false
