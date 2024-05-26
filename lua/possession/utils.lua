@@ -205,6 +205,15 @@ function M.prompt_yes_no(prompt, callback)
     end
 end
 
+---@param filter? vim.lsp.get_clients.Filter
+local function lsp_get_clients(filter)
+    if vim.fn.has('nvim-0.10') ~= 0 then
+        return vim.lsp.get_clients(filter)
+    else
+        return vim.lsp.get_active_clients(filter)
+    end
+end
+
 --- Delete all open buffers, avoiding potential errors
 ---@param force? boolean delete buffers with unsaved changes
 function M.delete_all_buffers(force)
@@ -218,7 +227,7 @@ function M.delete_all_buffers(force)
         end
     end
     vim.api.nvim_buf_delete(current_buffer, { force = force })
-    vim.lsp.stop_client(vim.lsp.get_active_clients())
+    vim.lsp.stop_client(lsp_get_clients())
 end
 
 ---@param mod string
