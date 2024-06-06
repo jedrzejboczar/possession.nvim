@@ -107,6 +107,7 @@ function M.save(name, opts)
     local path = paths.session(name)
     local short = paths.session_short(name)
     local commit = function(ok)
+        utils.clear_prompt()
         if ok then
             vim.fn.mkdir(config.session_dir, 'p')
             path:write(vim.json.encode(session_data), 'w')
@@ -117,7 +118,7 @@ function M.save(name, opts)
 
             utils.info('Saved as "%s"', short)
         else
-            utils.info('Aborting')
+            utils.info('Aborting save')
         end
 
         if not opts.vimscript then
@@ -342,7 +343,7 @@ function M.delete(name, opts)
                 utils.info('Deleted "%s"', short)
             end
         else
-            utils.info('Aborting')
+            utils.info('Aborting delete')
         end
 
         if opts.callback then

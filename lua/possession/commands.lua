@@ -56,9 +56,11 @@ end
 M.complete_session = complete_list(get_session_names)
 
 local function get_current()
-    local name = session.get_session_name()
-    if not name then
-        utils.error('No session is currently open - specify session name as an argument')
+    return session.get_session_name()
+end
+local function prompt_for_name()
+    local name = vim.fn.input('Session name: ')
+    if not name or name == '' then
         return nil
     end
     return name
@@ -81,6 +83,7 @@ end
 ---@param no_confirm? boolean
 function M.save(name, no_confirm)
     name = name_or(name, get_current)
+    name = name_or(name, prompt_for_name)
     if name then
         session.save(name, { no_confirm = no_confirm })
     end
