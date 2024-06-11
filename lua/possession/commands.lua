@@ -58,13 +58,6 @@ M.complete_session = complete_list(get_session_names)
 local function get_current()
     return session.get_session_name()
 end
-local function prompt_for_name()
-    local name = vim.fn.input('Session name: ')
-    if not name or name == '' then
-        return nil
-    end
-    return name
-end
 
 local function get_last()
     local path = session.last()
@@ -83,9 +76,13 @@ end
 ---@param no_confirm? boolean
 function M.save(name, no_confirm)
     name = name_or(name, get_current)
-    name = name_or(name, prompt_for_name)
+    local save = function(session_name)
+        session.save(session_name, { no_confirm = no_confirm })
+    end
     if name then
-        session.save(name, { no_confirm = no_confirm })
+        save(name)
+    else
+        vim.ui.input({ prompt = 'Session name: ' }, save)
     end
 end
 
