@@ -80,9 +80,14 @@ end
 ---@param name? string
 ---@param no_confirm? boolean
 function M.save(name, no_confirm)
-    name = name_or(name, get_current)
+    name = name_or(name, session.get_session_name)
+    local save = function(session_name)
+        session.save(session_name, { no_confirm = no_confirm })
+    end
     if name then
-        session.save(name, { no_confirm = no_confirm })
+        save(name)
+    else
+        vim.ui.input({ prompt = 'Session name: ' }, save)
     end
 end
 

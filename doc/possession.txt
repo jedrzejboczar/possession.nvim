@@ -11,7 +11,8 @@ currently loaded session is used (unless noted otherwise).
 
 Save the current session information under `session_dir`. Use
 `:PossessionSave! [{name}]` to avoid asking for confirmation when overwriting
-existing session file.
+existing session file. If [{name}] is not provided and a session does not
+already exist, you will be prompted for a name. 
 
                                                              *:PossessionLoad*
 :PossessionLoad [{name}]~
