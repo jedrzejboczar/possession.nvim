@@ -12,11 +12,6 @@ function M.session(name)
     return Path:new(config.session_dir) / (utils.percent_encode(name) .. '.json')
 end
 
---- Get path to symlink that points to last session
-function M.last_session_link()
-    return Path:new(config.session_dir) / '__last__'
-end
-
 --- Get short session path for printing
 ---@param name string
 function M.session_short(name)
