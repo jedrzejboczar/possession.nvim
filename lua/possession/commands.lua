@@ -10,6 +10,8 @@ local display = utils.lazy_mod('possession.display')
 local paths = utils.lazy_mod('possession.paths')
 ---@module "possession.migrate"
 local migrate = utils.lazy_mod('possession.migrate')
+---@module "possession.query"
+local query = utils.lazy_mod('possession.query')
 
 local function complete_list(candidates, opts)
     opts = vim.tbl_extend('force', {
@@ -65,12 +67,14 @@ local function get_current()
 end
 
 local function get_last()
-    local path = session.last()
-    if not path then
+    local sessions = query.as_list()
+    query.sort_by(sessions, 'mtime', true)
+    local last_session = sessions and sessions[1]
+    if not last_session then
         utils.error('Cannot find last loaded session - specify session name as an argument')
         return nil
     end
-    return get_session_names()[path]
+    return last_session.name
 end
 
 local function name_or(name, getter)

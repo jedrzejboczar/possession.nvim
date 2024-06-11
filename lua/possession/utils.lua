@@ -424,4 +424,12 @@ function M.percent_decode(str)
     end)
 end
 
+--- Update access and modification time of a file to the current time
+---@param path string
+function M.touch(path)
+    local sec, usec = vim.uv.gettimeofday()
+    local t = sec + usec / 1000000
+    vim.uv.fs_utime(path, t, t)
+end
+
 return M

@@ -25,25 +25,6 @@ setmetatable(M, {
     end,
 })
 
---- Get last loaded/saved session
----@return string|nil path to session file
-function M.last()
-    local link_path = paths.last_session_link()
-    local path = vim.loop.fs_readlink(link_path:absolute())
-    if not path then
-        return nil
-    end
-
-    -- Clean up broken link
-    path = Path:new(path)
-    if not path:exists() then
-        link_path:rm()
-        return nil
-    end
-
-    return path:absolute()
-end
-
 ---@class possession.SaveOpts
 ---@field vimscript? string mksession-generated commands, ignore hooks
 ---@field no_confirm? boolean do not ask when overwriting existing file
@@ -112,8 +93,6 @@ function M.save(name, opts)
             vim.fn.mkdir(config.session_dir, 'p')
             path:write(vim.json.encode(session_data), 'w')
 
-            -- Update link pointing to last session
-            M.update_last_session(path)
             state.session_name = name
 
             utils.info('Saved as "%s"', short)
@@ -181,7 +160,10 @@ end
 
 ---@return { name: string, variant: 'current'|'cwd'|'tmp' }?
 function M.autosave_info()
-    if state.session_name and utils.as_function(config.autosave.current)(state.session_name) then
+    if state.session_name then
+        if not utils.as_function(config.autosave.current)(state.session_name) then
+            return
+        end
         return { name = state.session_name, variant = 'current' }
     elseif utils.as_function(config.autosave.cwd)() then
         if autosave_skip() then
@@ -276,10 +258,6 @@ function M.load(name_or_data)
         vim.api.nvim_exec2(session_data.vimscript, { output = config.load_silent })
     end, nil, restore)()
 
-    -- Update link pointing to last session if loaded from file
-    if path then
-        M.update_last_session(path)
-    end
     state.session_name = session_data.name
 
     if session_data.name == utils.as_function(config.autosave.tmp_name)() then
@@ -292,6 +270,11 @@ function M.load(name_or_data)
     config.hooks.after_load(session_data.name, user_data)
 
     utils.info('Loaded session "%s"', session_data.name)
+
+    -- update last session by updating modification time of session file (after any autosave)
+    if path then
+        utils.touch(path:absolute())
+    end
 end
 
 --- Close currently open session
@@ -392,16 +375,13 @@ function M.list(opts)
 
     local sessions = {}
     local glob = (Path:new(config.session_dir) / '*'):absolute()
-    local last = paths.last_session_link():absolute()
     for _, file in ipairs(vim.fn.glob(glob, true, true)) do
         local path = Path:new(file)
-        if path:absolute() ~= last then
-            local data = vim.json.decode(path:read())
-            sessions[file] = data
+        local data = vim.json.decode(path:read())
+        sessions[file] = data
 
-            files_by_name[data.name] = files_by_name[data.name] or {}
-            table.insert(files_by_name[data.name], file)
-        end
+        files_by_name[data.name] = files_by_name[data.name] or {}
+        table.insert(files_by_name[data.name], file)
     end
 
     -- Check for name duplicates
@@ -423,17 +403,6 @@ function M.mksession()
     local tmp = vim.fn.tempname()
     vim.cmd('mksession! ' .. tmp)
     return Path:new(tmp):read()
-end
-
---- Change the path to last file (make the symlink point to `path`)
----@param path Path
-function M.update_last_session(path)
-    -- Must unlink if exists because fs_symlink won't overwrite existing links
-    local link_path = paths.last_session_link()
-    if link_path:exists() then
-        link_path:rm()
-    end
-    vim.loop.fs_symlink(path:absolute(), link_path:absolute())
 end
 
 return M
