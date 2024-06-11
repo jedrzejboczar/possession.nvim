@@ -56,7 +56,12 @@ end
 M.complete_session = complete_list(get_session_names)
 
 local function get_current()
-    return session.get_session_name()
+    local name = session.get_session_name()
+    if not name then
+        utils.error('No session is currently open - specify session name as an argument')
+        return nil
+    end
+    return name
 end
 
 local function get_last()
@@ -75,7 +80,7 @@ end
 ---@param name? string
 ---@param no_confirm? boolean
 function M.save(name, no_confirm)
-    name = name_or(name, get_current)
+    name = name_or(name, session.get_session_name)
     local save = function(session_name)
         session.save(session_name, { no_confirm = no_confirm })
     end
