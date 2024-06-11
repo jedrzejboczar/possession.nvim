@@ -174,6 +174,11 @@ function M.list(full)
     display.echo_sessions { vimscript = full }
 end
 
+---@param full? boolean
+function M.list_cwd(full)
+    display.echo_sessions { vimscript = full, only_cwd = true }
+end
+
 ---@param path string
 function M.migrate(path)
     if vim.fn.getftype(path) == 'file' then

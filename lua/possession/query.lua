@@ -6,9 +6,11 @@ local config = require('possession.config')
 
 --- Get a sessions as a list-like table
 ---@param sessions? table<string, table> like from possession.session.list()
+---@param only_cwd? boolean only load sessions for the cwd
 ---@return table[] list of session data with additional `file` key
-function M.as_list(sessions)
-    sessions = sessions or session.list() --[[@as table<string, table> ]]
+function M.as_list(sessions, only_cwd)
+    only_cwd = only_cwd or false
+    sessions = sessions or session.list { cwd = only_cwd }
     local list = {}
     for file, data in pairs(sessions) do
         if data.file then

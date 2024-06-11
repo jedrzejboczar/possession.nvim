@@ -99,6 +99,7 @@ end
 ---@field buffers? boolean include buffers from parsed vimscript
 ---@field buffers_short? boolean show buffer paths normalized and relative to session cwd
 ---@field tab_cwd? boolean include tab cwds from parsed vimscript
+---@field only_cwd? boolean only show sessions for the cwd
 
 --- Print a list of sessions as Vim message
 ---@param opts? possession.EchoSessionsOpts
@@ -107,9 +108,10 @@ function M.echo_sessions(opts)
         sessions = nil,
         vimscript = false,
         user_data = true,
+        only_cwd = false,
     }, opts or {})
 
-    local sessions = opts.sessions or query.as_list()
+    local sessions = opts.sessions or query.as_list(nil, opts.only_cwd)
 
     local info = {}
     if opts.buffers or opts.tab_cwd then

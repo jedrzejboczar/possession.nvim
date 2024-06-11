@@ -35,6 +35,7 @@ local function defaults()
             delete = 'PossessionDelete',
             show = 'PossessionShow',
             list = 'PossessionList',
+            list_cwd = 'PossessionListCwd',
             migrate = 'PossessionMigrate',
         },
         hooks = {
