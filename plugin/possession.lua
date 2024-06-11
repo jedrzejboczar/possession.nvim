@@ -15,6 +15,13 @@ vim.api.nvim_create_autocmd('VimEnter', {
     callback = function()
         -- Be lazy when loading modules
         local config = require('possession.config')
+        local Path = require('plenary.path')
+
+        local symlink = Path:new(config.session_dir) / '__last__'
+        if symlink:exists() then
+            symlink:rm()
+        end
+
         local utils = require('possession.utils')
         if utils.as_function(config.autoload.cwd)() then
             local paths = require('possession.paths')
