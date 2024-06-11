@@ -100,14 +100,6 @@ function M.load(name)
     name = name_or(name, get_last)
     if name then
         session.load(name)
-        -- A session could be (auto) saved just before this one is
-        -- loaded, which means the previous session has the newer mtime
-        -- so :PossessionLoad will flip flop between the last two sessions.
-        -- This might be desireable, otherwise we can immediately save so
-        -- :PossessionLoad will only ever load a single session.
-        -- session.save(name, { no_confirm = true })
-        -- Ideally we don't write the exact same content again, we just
-        -- want something like `touch` to update the mtime.
     end
 end
 

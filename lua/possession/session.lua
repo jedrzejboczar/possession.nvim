@@ -160,7 +160,10 @@ end
 
 ---@return { name: string, variant: 'current'|'cwd'|'tmp' }?
 function M.autosave_info()
-    if state.session_name and utils.as_function(config.autosave.current)(state.session_name) then
+    if state.session_name then
+        if not utils.as_function(config.autosave.current)(state.session_name) then
+            return
+        end
         return { name = state.session_name, variant = 'current' }
     elseif utils.as_function(config.autosave.cwd)() then
         if autosave_skip() then
@@ -267,6 +270,11 @@ function M.load(name_or_data)
     config.hooks.after_load(session_data.name, user_data)
 
     utils.info('Loaded session "%s"', session_data.name)
+
+    -- update last session by updating modification time of session file (after any autosave)
+    if path then
+        utils.touch(path:absolute())
+    end
 end
 
 --- Close currently open session
