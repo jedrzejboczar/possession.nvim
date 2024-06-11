@@ -2,7 +2,6 @@ local M = {}
 
 local Path = require('plenary.path')
 local session = require('possession.session')
-local paths = require('possession.paths')
 local utils = require('possession.utils')
 
 --- Migrate mksession-based file to JSON format by loading and saving the session
@@ -14,7 +13,7 @@ function M.migrate(vimscript_path, opts)
         callback = nil,
     }, opts or {})
     -- If not provided fallback to filename without extension
-    local name = assert(opts.name and opts.name or paths.session_name(vimscript_path))
+    local name = assert(opts.name and opts.name or vim.fn.fnamemodify(Path:new(vimscript_path):absolute(), ':t:r'))
     local vimscript = Path:new(vimscript_path):read()
 
     -- Try to retrieve cwd from vimscript, fall back to getcwd

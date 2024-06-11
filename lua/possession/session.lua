@@ -150,7 +150,7 @@ function M.rename(old_name, new_name)
     local old_path = paths.session(old_name)
     local new_path = paths.session(new_name)
     if not old_path:exists() then
-        utils.error('Session "%s" does not exist, no file %s', paths.session_short(old_name))
+        utils.error('Session "%s" does not exist, no file %s', old_name, paths.session_short(old_name))
         return
     end
     if new_path:exists() then
@@ -170,26 +170,36 @@ function M.rename(old_name, new_name)
     utils.info('Renamed session "%s" to "%s"', old_name, new_name)
 end
 
-function M.autosave()
-    if state.session_name then
-        if utils.as_function(config.autosave.current)(state.session_name) then
-            utils.debug('Auto-saving session "%s"', state.session_name)
-            M.save(state.session_name, { no_confirm = true })
-        end
-    elseif utils.as_function(config.autosave.tmp)() then
-        -- Save as tmp when session is not loaded
+local function autosave_skip()
+    -- Skip scratch buffer e.g. startscreen
+    local unscratch_buffers = vim.tbl_filter(function(buf)
+        return 'nofile' ~= vim.bo[buf].buftype
+    end, vim.api.nvim_list_bufs())
+    return not unscratch_buffers or not next(unscratch_buffers)
+end
 
-        -- Skip scratch buffer e.g. startscreen
-        local unscratch_buffers = vim.tbl_filter(function(buf)
-            return 'nofile' ~= vim.api.nvim_buf_get_option(buf, 'buftype')
-        end, vim.api.nvim_list_bufs())
-        if not unscratch_buffers or not next(unscratch_buffers) then
+---@return { name: string, variant: 'current'|'cwd'|'tmp' }?
+function M.autosave_info()
+    if state.session_name and utils.as_function(config.autosave.current)(state.session_name) then
+        return { name = state.session_name, variant = 'current' }
+    elseif utils.as_function(config.autosave.cwd)() then
+        if autosave_skip() then
             return
         end
+        return { name = paths.cwd_session_name(), variant = 'cwd' }
+    elseif utils.as_function(config.autosave.tmp)() then
+        if autosave_skip() then
+            return
+        end
+        return { name = utils.as_function(config.autosave.tmp_name)(), variant = 'tmp' }
+    end
+end
 
-        local tmp_name = utils.as_function(config.autosave.tmp_name)()
-        utils.debug('Auto-saving tmp session as "%s"', tmp_name)
-        M.save(tmp_name, { no_confirm = true })
+function M.autosave()
+    local info = M.autosave_info()
+    if info then
+        utils.debug('Auto-saving %s session "%s"', info.variant, state.session_name)
+        M.save(info.name, { no_confirm = true })
     end
 end
 
@@ -209,6 +219,8 @@ local function save_global_options()
 end
 
 local function restore_global_options(options)
+    -- luacheck thinks vim.o.? is read-only
+    -- luacheck: push ignore 122
     local restore = function()
         for opt, value in pairs(options) do
             vim.o[opt] = value
@@ -220,6 +232,7 @@ local function restore_global_options(options)
     utils.try(restore, nil, function()
         vim.o.eventignore = eventignore
     end)()
+    -- luacheck: pop
 end
 
 --- Load session by name (or from raw data)
@@ -239,9 +252,8 @@ function M.load(name_or_data)
     end
 
     -- Autosave if not loading the auto-saved session itself
-    local tmp_name = utils.as_function(config.autosave.tmp)() and utils.as_function(config.autosave.tmp_name)()
-    local autosaved_name = state.session_name or tmp_name
-    if config.autosave.on_load and session_data.name ~= autosaved_name then
+    local autosave_info = M.autosave_info()
+    if config.autosave.on_load and (autosave_info and session_data.name ~= M.autosave_info().name) then
         M.autosave()
     end
 
@@ -269,7 +281,7 @@ function M.load(name_or_data)
     end
     state.session_name = session_data.name
 
-    if session_data.name == tmp_name then
+    if session_data.name == utils.as_function(config.autosave.tmp_name)() then
         state.session_name = nil
     else
         state.session_name = session_data.name
@@ -365,23 +377,41 @@ function M.exists(name)
     return true
 end
 
----@class possession.ListOpts
----@field no_read? boolean do not read/parse session files, just scan the directory
-
 --- Get a list of sessions as map-like table
----@param opts? possession.ListOpts
----@return table<string, table>|table<string, boolean> sessions {filename: V} with V type depending on `no_read`
+---@param opts? {}
+---@return table<string, table> sessions {filename: session_data}
 function M.list(opts)
-    opts = vim.tbl_extend('force', {
-        no_read = true,
-    }, opts or {})
+    opts = opts or {}
+    if opts.no_read then
+        vim.deprecate('session.list().no_read', 'session files are now always read', '?', 'possession')
+    end
+
+    ---@type table<string, string[]>
+    local files_by_name = {}
 
     local sessions = {}
-    local glob = paths.session('*'):absolute()
+    local glob = (Path:new(config.session_dir) / '*'):absolute()
+    local last = paths.last_session_link():absolute()
     for _, file in ipairs(vim.fn.glob(glob, true, true)) do
         local path = Path:new(file)
-        local data = opts.no_read and vim.json.decode(path:read()) or path:absolute()
-        sessions[file] = data
+        if path:absolute() ~= last then
+            local data = vim.json.decode(path:read())
+            sessions[file] = data
+
+            files_by_name[data.name] = files_by_name[data.name] or {}
+            table.insert(files_by_name[data.name], file)
+        end
+    end
+
+    -- Check for name duplicates
+    for name, files in pairs(files_by_name) do
+        if #files > 1 then
+            utils.warn(
+                'Session name "%s" found in multiple session files, please remove one of them:\n%s',
+                name,
+                table.concat(files, '\n')
+            )
+        end
     end
 
     return sessions
