@@ -181,7 +181,7 @@ end
 function M.autosave(autosave_info)
     local info = autosave_info or M.autosave_info()
     if info then
-        utils.debug('Auto-saving %s session "%s"', info.variant, state.session_name)
+        utils.debug('Auto-saving %s session "%s"', info.variant, info.name)
         M.save(info.name, { no_confirm = true })
     end
 end
