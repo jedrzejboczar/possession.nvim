@@ -178,8 +178,8 @@ function M.autosave_info()
     end
 end
 
-function M.autosave()
-    local info = M.autosave_info()
+function M.autosave(autosave_info)
+    local info = autosave_info or M.autosave_info()
     if info then
         utils.debug('Auto-saving %s session "%s"', info.variant, state.session_name)
         M.save(info.name, { no_confirm = true })
@@ -236,8 +236,8 @@ function M.load(name_or_data)
 
     -- Autosave if not loading the auto-saved session itself
     local autosave_info = M.autosave_info()
-    if config.autosave.on_load and (autosave_info and session_data.name ~= M.autosave_info().name) then
-        M.autosave()
+    if config.autosave.on_load and (autosave_info and session_data.name ~= autosave_info.name) then
+        M.autosave(autosave_info)
     end
 
     -- Run pre-load hook that can pre-process user data, abort if returns falsy value.
