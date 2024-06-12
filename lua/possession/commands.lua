@@ -66,12 +66,18 @@ local function get_current()
     return name
 end
 
-local function get_last()
-    local sessions = query.as_list()
+---@param only_cwd? boolean only consider sessions for the cwd
+---@param silent? boolean surpress an error if there is no last session
+local function get_last(only_cwd, silent)
+    only_cwd = only_cwd or false
+    silent = silent or false
+    local sessions = query.as_list(nil, only_cwd)
     query.sort_by(sessions, 'mtime', true)
     local last_session = sessions and sessions[1]
     if not last_session then
-        utils.error('Cannot find last loaded session - specify session name as an argument')
+        if not silent then
+            utils.error('Cannot find last loaded session - specify session name as an argument')
+        end
         return nil
     end
     return last_session.name
@@ -110,6 +116,14 @@ end
 
 function M.load_cwd()
     session.load(paths.cwd_session_name())
+end
+
+function M.load_last(only_cwd)
+    local last = get_last(only_cwd, true)
+    if last then
+        session.load(last)
+        return last
+    end
 end
 
 local function maybe_input(value, opts, callback)

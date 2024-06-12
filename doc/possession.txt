@@ -154,8 +154,8 @@ autosave.on_quit~
                                                          *possession-autoload*
 autoload.cwd~
     `boolean | function(): boolean`
-    Automatically load a session for current working directory (created by
-    `autosave.cwd`) on VimEnter if such a session exists.
+    Automatically load the last session for current working directory. This
+    could be one created by `autosave.cwd` or a manually saved session.
 
                                                             *possession-hooks*
 hooks.before_save~
