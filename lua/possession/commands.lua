@@ -128,6 +128,7 @@ function M.load_last(only_cwd)
         session.load(last, { skip_autosave = true })
         return last
     end
+    utils.info('No session found to autoload')
 end
 
 local function maybe_input(value, opts, callback)
