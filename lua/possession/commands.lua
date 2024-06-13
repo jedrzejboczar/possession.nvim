@@ -71,20 +71,11 @@ local function cwd_sessions()
 end
 
 ---@param sessions? table[] list of sessions from `as_list`
----@param opts? { silent?: boolean }
-local function get_last(sessions, opts)
+local function get_last(sessions)
     sessions = sessions or query.as_list()
-    opts = opts or { silent = false }
-
     query.sort_by(sessions, 'mtime', true)
     local last_session = sessions and sessions[1]
-    if not last_session then
-        if not opts.silent then
-            utils.error('Cannot find last loaded session - specify session name as an argument')
-        end
-        return nil
-    end
-    return last_session.name
+    return last_session and last_session.name
 end
 
 local function name_or(name, getter)
@@ -110,6 +101,8 @@ function M.load(name)
     name = name_or(name, get_last)
     if name then
         session.load(name)
+    else
+        utils.error('Cannot find last loaded session - specify session name as an argument')
     end
 end
 
@@ -123,7 +116,7 @@ function M.load_cwd()
 end
 
 function M.load_last(only_cwd)
-    local last = get_last(cwd_sessions(), { silent = true })
+    local last = get_last(cwd_sessions())
     if last then
         session.load(last, { skip_autosave = true })
         return last
