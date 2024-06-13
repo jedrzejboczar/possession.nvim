@@ -229,6 +229,10 @@ function M.load(name_or_data, opts)
     local path
     if type(name_or_data) == 'string' then
         path = paths.session(name_or_data)
+        if not path:exists() then
+            utils.error('Cannot load session "%s" - it does not exist', name_or_data)
+            return
+        end
         session_data = vim.json.decode(path:read())
     else
         session_data = name_or_data
