@@ -95,9 +95,9 @@ function M.save(name, opts)
 
             state.session_name = name
 
-            utils.info('Saved as "%s"', short)
+            utils.info('Saved session as "%s"', short)
         else
-            utils.info('Aborting save')
+            utils.info('Aborting session save')
         end
 
         if not opts.vimscript then
@@ -317,7 +317,7 @@ function M.delete(name, opts)
     local short = paths.session_short(name)
 
     if not path:exists() then
-        utils.warn('Session not exists: "%s"', path:absolute())
+        utils.warn('Cannot delete session "%s" - it does not exist', path:absolute())
         return
     end
 
@@ -329,10 +329,10 @@ function M.delete(name, opts)
                 if state.session_name == name then
                     state.session_name = nil
                 end
-                utils.info('Deleted "%s"', short)
+                utils.info('Deleted session "%s"', short)
             end
         else
-            utils.info('Aborting delete')
+            utils.info('Aborting session delete')
         end
 
         if opts.callback then
