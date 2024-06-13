@@ -362,15 +362,10 @@ function M.exists(name)
 end
 
 --- Get a list of sessions as map-like table
----@class possession.ListOpts
----@field only_cwd? boolean only load sessions for cwd
-
----@param opts? possession.ListOpts
+---@param opts? {}
 ---@return table<string, table> sessions {filename: session_data}
 function M.list(opts)
-    opts = vim.tbl_extend('force', {
-        only_cwd = false,
-    }, opts or {})
+    opts = opts or {}
     if opts.no_read then
         vim.deprecate('session.list().no_read', 'session files are now always read', '?', 'possession')
     end
@@ -379,17 +374,14 @@ function M.list(opts)
     local files_by_name = {}
 
     local sessions = {}
-    local cwd = vim.fn.getcwd(-1, -1)
     local glob = (Path:new(config.session_dir) / '*'):absolute()
     for _, file in ipairs(vim.fn.glob(glob, true, true)) do
         local path = Path:new(file)
         local data = vim.json.decode(path:read())
-        if not opts.only_cwd or data.cwd == cwd then
-            sessions[file] = data
+        sessions[file] = data
 
-            files_by_name[data.name] = files_by_name[data.name] or {}
-            table.insert(files_by_name[data.name], file)
-        end
+        files_by_name[data.name] = files_by_name[data.name] or {}
+        table.insert(files_by_name[data.name], file)
     end
 
     -- Check for name duplicates

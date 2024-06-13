@@ -81,7 +81,11 @@ function M.list(opts)
     )
 
     local get_finder = function()
-        local sessions = opts.sessions and vim.list_slice(opts.sessions) or query.as_list(nil, opts.only_cwd)
+        local sessions = opts.sessions and vim.list_slice(opts.sessions) or query.as_list()
+        if opts.only_cwd then
+            sessions = query.filter_by(sessions, { cwd = vim.fn.getcwd() })
+        end
+
         if opts.sort then
             local key = opts.sort == true and 'name' or opts.sort
             local descending = key ~= 'name'

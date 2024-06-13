@@ -193,7 +193,7 @@ require('telescope').load_extension('possession')
 Then use `:Telescope possession list` or `require('telescope').extensions.possession.list()`
 The default action will load selected session.
 
-Alternatively, use `:Telescope possession list cwd=true` or `require('telescope').extensions.possession.list({cwd=true})`
+Alternatively, use `:Telescope possession list only_cwd=true` or `require('telescope').extensions.possession.list({only_cwd=true})`
 This will limit the displayed sessions to those related to the current working directory.
 
 ![telescope](./img/telescope.png)

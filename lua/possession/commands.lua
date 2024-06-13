@@ -66,16 +66,20 @@ local function get_current()
     return name
 end
 
----@param only_cwd? boolean only consider sessions for the cwd
----@param silent? boolean surpress an error if there is no last session
-local function get_last(only_cwd, silent)
-    only_cwd = only_cwd or false
-    silent = silent or false
-    local sessions = query.as_list(nil, only_cwd)
+local function cwd_sessions()
+    return query.filter_by(query.as_list(), { cwd = vim.fn.getcwd() })
+end
+
+---@param sessions table[] list of sessions from `as_list`
+---@param opts? { silent?: boolean }
+local function get_last(sessions, opts)
+    sessions = sessions or query.as_list()
+    opts = opts or { silent = false }
+
     query.sort_by(sessions, 'mtime', true)
     local last_session = sessions and sessions[1]
     if not last_session then
-        if not silent then
+        if not opts.silent then
             utils.error('Cannot find last loaded session - specify session name as an argument')
         end
         return nil
@@ -119,7 +123,7 @@ function M.load_cwd()
 end
 
 function M.load_last(only_cwd)
-    local last = get_last(only_cwd, true)
+    local last = get_last(cwd_sessions(), { silent = true })
     if last then
         session.load(last)
         return last
@@ -190,7 +194,7 @@ end
 
 ---@param full? boolean
 function M.list_cwd(full)
-    display.echo_sessions { vimscript = full, only_cwd = true }
+    display.echo_sessions { vimscript = full, sessions = cwd_sessions() }
 end
 
 ---@param path string

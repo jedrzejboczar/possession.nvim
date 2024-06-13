@@ -6,11 +6,9 @@ local config = require('possession.config')
 
 --- Get a sessions as a list-like table
 ---@param sessions? table<string, table> like from possession.session.list()
----@param only_cwd? boolean only load sessions for the cwd
 ---@return table[] list of session data with additional `file` key
-function M.as_list(sessions, only_cwd)
-    only_cwd = only_cwd or false
-    sessions = sessions or session.list { cwd = only_cwd }
+function M.as_list(sessions)
+    sessions = sessions or session.list()
     local list = {}
     for file, data in pairs(sessions) do
         if data.file then
@@ -21,6 +19,15 @@ function M.as_list(sessions, only_cwd)
         table.insert(list, data)
     end
     return list
+end
+
+--- Filters a list of sessions
+---@param sessions table[] list of sessions from `as_list`
+---@param opts { cwd: string }
+function M.filter_by(sessions, opts)
+    return vim.tbl_filter(function(s)
+        return opts.cwd == s.cwd
+    end, sessions)
 end
 
 ---@alias possession.QuerySortKey 'name'|'atime'|'mtime'|'ctime'
