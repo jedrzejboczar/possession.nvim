@@ -125,7 +125,7 @@ end
 function M.load_last(only_cwd)
     local last = get_last(cwd_sessions(), { silent = true })
     if last then
-        session.load(last)
+        session.load(last, { skip_autosave = true })
         return last
     end
 end

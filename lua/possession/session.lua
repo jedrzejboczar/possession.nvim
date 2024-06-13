@@ -123,7 +123,6 @@ end
 ---@param new_name string new name to use
 function M.rename(old_name, new_name)
     vim.validate {
-        old_name = { old_name, 'string' },
         new_name = { new_name, 'string' },
     }
 
@@ -219,9 +218,10 @@ local function restore_global_options(options)
 end
 
 --- Load session by name (or from raw data)
----
 ---@param name_or_data string|table name or raw data that will be saved as the session file in JSON format
-function M.load(name_or_data)
+---@param opts? { skip_autosave?: boolean }
+function M.load(name_or_data, opts)
+    opts = opts or { skip_autosave = false }
     vim.validate { name_or_data = { name_or_data, utils.is_type { 'string', 'table' } } }
 
     -- Load session data
@@ -235,9 +235,11 @@ function M.load(name_or_data)
     end
 
     -- Autosave if not loading the auto-saved session itself
-    local autosave_info = M.autosave_info()
-    if config.autosave.on_load and (autosave_info and session_data.name ~= autosave_info.name) then
-        M.autosave(autosave_info)
+    if not opts.skip_autosave then
+        local autosave_info = M.autosave_info()
+        if config.autosave.on_load and (autosave_info and session_data.name ~= autosave_info.name) then
+            M.autosave(autosave_info)
+        end
     end
 
     -- Run pre-load hook that can pre-process user data, abort if returns falsy value.
