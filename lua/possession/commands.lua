@@ -70,7 +70,7 @@ local function cwd_sessions()
     return query.filter_by(query.as_list(), { cwd = vim.fn.getcwd() })
 end
 
----@param sessions table[] list of sessions from `as_list`
+---@param sessions? table[] list of sessions from `as_list`
 ---@param opts? { silent?: boolean }
 local function get_last(sessions, opts)
     sessions = sessions or query.as_list()
