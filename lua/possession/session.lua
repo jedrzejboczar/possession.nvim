@@ -374,14 +374,15 @@ function M.list(opts)
     local files_by_name = {}
 
     local sessions = {}
-    local glob = (Path:new(config.session_dir) / '*'):absolute()
+    local glob = (Path:new(config.session_dir) / '*.json'):absolute()
     for _, file in ipairs(vim.fn.glob(glob, true, true)) do
-        local path = Path:new(file)
-        local data = vim.json.decode(path:read())
-        sessions[file] = data
+        if vim.fn.filereadable(file) ~= 0 then
+            local data = vim.json.decode(Path:new(file):read())
+            sessions[file] = data
 
-        files_by_name[data.name] = files_by_name[data.name] or {}
-        table.insert(files_by_name[data.name], file)
+            files_by_name[data.name] = files_by_name[data.name] or {}
+            table.insert(files_by_name[data.name], file)
+        end
     end
 
     -- Check for name duplicates
