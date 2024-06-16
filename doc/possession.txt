@@ -17,7 +17,7 @@ already exist, you will be prompted for a name.
                                                              *:PossessionLoad*
 :PossessionLoad [{name}]~
 
-Load given session from disk. When `name` is not ommitted, then use last
+Load given session from disk. When `name` is ommitted, then use last
 loaded session name.
 
                                                           *:PossessionSaveCwd*
