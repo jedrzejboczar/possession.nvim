@@ -181,11 +181,14 @@ function M.show(name)
     vim.api.nvim_win_set_buf(0, buf)
 end
 
----@param cwd_only? string
 ---@param full? boolean
-function M.list(cwd_only, full)
-    local sessions = cwd_only and cwd_sessions() or query.as_list()
-    display.echo_sessions { vimscript = full, sessions = sessions }
+function M.list(full)
+    display.echo_sessions { vimscript = full }
+end
+
+---@param full? boolean
+function M.list_cwd(full)
+    display.echo_sessions { vimscript = full, sessions = cwd_sessions() }
 end
 
 ---@param path string
