@@ -110,6 +110,10 @@ function M.echo_sessions(opts)
     }, opts or {})
 
     local sessions = opts.sessions or query.as_list()
+    if #sessions == 0 then
+        utils.info('No sessions found')
+        return
+    end
 
     local info = {}
     if opts.buffers or opts.tab_cwd then

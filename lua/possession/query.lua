@@ -25,8 +25,10 @@ end
 ---@param sessions table[] list of sessions from `as_list`
 ---@param opts { cwd: string }
 function M.filter_by(sessions, opts)
+    local Path = require('plenary.path')
+    local cwd = Path:new(vim.fn.expand(opts.cwd)):absolute()
     return vim.tbl_filter(function(s)
-        return opts.cwd == s.cwd
+        return s.cwd == cwd
     end, sessions)
 end
 

@@ -66,8 +66,9 @@ local function get_current()
     return name
 end
 
-local function cwd_sessions()
-    return query.filter_by(query.as_list(), { cwd = vim.fn.getcwd() })
+---@param dir string dir to get sessions for
+local function get_sessions_for_dir(dir)
+    return query.filter_by(query.as_list(), { cwd = dir })
 end
 
 ---@param sessions? table[] list of sessions from `as_list`
@@ -116,7 +117,7 @@ function M.load_cwd()
 end
 
 function M.load_last(only_cwd)
-    local last = get_last(cwd_sessions())
+    local last = get_last(get_sessions_for_dir(vim.fn.getcwd()))
     if last then
         session.load(last, { skip_autosave = true })
         return last
@@ -187,8 +188,9 @@ function M.list(full)
 end
 
 ---@param full? boolean
-function M.list_cwd(full)
-    display.echo_sessions { vimscript = full, sessions = cwd_sessions() }
+function M.list_cwd(dir, full)
+    dir = dir or vim.fn.getcwd()
+    display.echo_sessions { vimscript = full, sessions = get_sessions_for_dir(dir) }
 end
 
 ---@param path string
