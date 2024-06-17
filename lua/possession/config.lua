@@ -158,9 +158,9 @@ local function fix_compatibility(opts)
 end
 
 function M.setup(opts)
-    warn_on_unknown_keys(opts)
-
     fix_compatibility(opts)
+
+    warn_on_unknown_keys(opts)
 
     local new_config = vim.tbl_deep_extend('force', {}, defaults(), opts or {})
     -- Do _not_ replace the table pointer with `config = ...` because this
