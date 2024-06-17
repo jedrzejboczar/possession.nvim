@@ -27,9 +27,10 @@ Save session for current working directory. Use `!` to avoid confirmation
 dialog.
 
                                                           *:PossessionLoadCwd*
-:PossessionLoadCwd
+:PossessionLoadCwd [{dir}]
 
-Load session for current working directory.
+Load last session for specified `dir`. If `dir` is omitted, then use
+the current working directory.
 
                                                            *:PossessionRename*
 :PossessionRename [{name} [{new_name}]]~

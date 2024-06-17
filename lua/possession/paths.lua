@@ -32,4 +32,9 @@ function M.cwd_session_name()
     return vim.fn.fnamemodify(global_cwd, ':~')
 end
 
+--- Vim expands the given dir, then converts it to an absolute path
+function M.absolute_dir(dir)
+    return Path:new(vim.fn.expand(dir)):absolute()
+end
+
 return M

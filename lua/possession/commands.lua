@@ -112,8 +112,20 @@ function M.save_cwd(no_confirm)
     session.save(paths.cwd_session_name(), { no_confirm = no_confirm })
 end
 
-function M.load_cwd()
-    session.load(paths.cwd_session_name())
+---@param dir? string directory to load last session from
+function M.load_cwd(dir)
+    if not dir then
+        session.load(paths.cwd_session_name())
+        return
+    end
+
+    local abs_dir = paths.absolute_dir(dir)
+    local last = get_last(get_sessions_for_dir(abs_dir))
+    if last then
+        session.load(last)
+    else
+        utils.error('No session found for path ' .. abs_dir)
+    end
 end
 
 function M.load_last(only_cwd)
