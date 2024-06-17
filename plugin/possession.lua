@@ -24,11 +24,12 @@ vim.api.nvim_create_autocmd('VimEnter', {
         end
 
         local utils = require('possession.utils')
-        if utils.as_function(config.autoload.cwd)() then
+        local al = utils.as_function(config.autoload)()
+        if al and al ~= '' then
             local cmd = require('possession.commands')
-            local session = cmd.load_last()
+            local session = cmd.load_last(al)
             if session then
-                utils.debug('Auto-loading CWD session: %s', session)
+                utils.debug('Auto-loading session: %s', session)
             end
         end
     end,

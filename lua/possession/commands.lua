@@ -128,8 +128,32 @@ function M.load_cwd(dir)
     end
 end
 
-function M.load_last(only_cwd)
-    local last = get_last(get_sessions_for_dir(vim.fn.getcwd()))
+function M.load_last(session_type)
+    local last
+    if session_type == 'last' then
+        last = get_last()
+    elseif session_type == 'auto_cwd' then
+        last = paths.cwd_session_name()
+    elseif session_type == 'last_cwd' then
+        last = get_last(get_sessions_for_dir(vim.fn.getcwd()))
+    elseif session_type then
+        -- Something was returned from custom config function.
+        if vim.fn.isdirectory(session_type) == 1 then
+            local abs = paths.absolute_dir(session_type)
+            last = get_last(get_sessions_for_dir(abs))
+        else
+            -- Try to load returned string as literal session name.
+
+            -- Futher down the `session.load` call stack will error
+            -- if `session_type` ends with `.json`. Strip if off, it
+            -- will get added back when needed.
+            last = string.gsub(session_type, '.json$', '')
+        end
+    else
+        utils.error('Possession.nvim: Unknown `autoload` config value `' .. session_type .. '`')
+        return
+    end
+
     if last then
         session.load(last, { skip_autosave = true })
         return last

@@ -34,6 +34,9 @@ end
 
 --- Vim expands the given dir, then converts it to an absolute path
 function M.absolute_dir(dir)
+    -- TODO: Strip trailing forward/back slash after calling absolute.
+    -- The cwd in the JSON has no trailing slash, so if we don't remove
+    -- it then the dir will not match that cwd in the JSON.
     return Path:new(vim.fn.expand(dir)):absolute()
 end
 

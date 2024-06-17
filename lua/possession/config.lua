@@ -22,9 +22,7 @@ local function defaults()
             on_load = true,
             on_quit = true,
         },
-        autoload = {
-            cwd = false, -- or fun(): boolean
-        },
+        autoload = false, -- or 'last' or 'auto_cwd' or 'last_cwd' or fun(): string
         commands = {
             save = 'PossessionSave',
             load = 'PossessionLoad',

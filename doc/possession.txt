@@ -155,10 +155,17 @@ autosave.on_quit~
     way the current window layout will be preserved.
 
                                                          *possession-autoload*
-autoload.cwd~
-    `boolean | function(): boolean`
-    Automatically load the last session for current working directory. This
-    could be one created by `autosave.cwd` or a manually saved session.
+autoload~
+    `string | function(): string
+    Automatically load a session. Valid string values are:
+    - `last` loads the last saved session
+    - `auto_cwd` loads the session saved by `autosave.cwd` or `:PossessionSaveCwd`
+    - `last_cwd` loads the last session for the current working directory
+
+    If a function is provided, it needs to return the name of a session file
+    or a directory. If it is a directory, the last session for that directory
+    is loaded. The function can also return one of the above strings, in
+    which case the behaviour is as defined for that string.
 
                                                             *possession-hooks*
 hooks.before_save~
