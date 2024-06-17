@@ -68,7 +68,7 @@ end
 
 ---@param dir string dir to get sessions for
 local function get_sessions_for_dir(dir)
-    return query.filter_by(query.as_list(), { cwd = dir })
+    return query.filter_by(query.as_list(), { cwd = paths.absolute_dir(dir) })
 end
 
 ---@param sessions? table[] list of sessions from `as_list`
