@@ -138,7 +138,7 @@ function M.load_last(session_type)
         last = get_last(get_sessions_for_dir(vim.fn.getcwd()))
     elseif session_type then
         -- Something was returned from custom config function.
-        if vim.fn.isdirectory(session_type) == 1 then
+        if vim.fn.isdirectory(vim.fn.fnamemodify(session_type, ':p')) == 1 then
             local abs = paths.absolute_dir(session_type)
             last = get_last(get_sessions_for_dir(abs))
         else
