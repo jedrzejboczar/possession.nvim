@@ -150,6 +150,11 @@ local function fix_compatibility(opts)
             enable = opts.telescope.previewer,
         }
     end
+
+    local autoload = vim.tbl_get(opts, 'autoload')
+    if type(autoload) == 'table' then
+        opts.autoload = autoload.cwd and 'auto_cwd' or false
+    end
 end
 
 function M.setup(opts)
