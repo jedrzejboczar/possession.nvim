@@ -13,6 +13,7 @@ local function setup(opts)
         local names = config.commands
         local commands = require('possession.commands')
         local complete = commands.complete_session
+        local cwd_complete = commands.cwd_complete_session
 
         cmd(names.save, 'name?', { nargs = '?', complete = complete, bang = true }, function(o)
             commands.save(o.fargs[1], o.bang)
@@ -23,7 +24,7 @@ local function setup(opts)
         cmd(names.save_cwd, '', { nargs = 0, bang = true }, function(o)
             commands.save_cwd(o.bang)
         end)
-        cmd(names.load_cwd, 'dir?', { nargs = '?', complete = 'dir' }, function(o)
+        cmd(names.load_cwd, 'dir?', { nargs = '?', complete = cwd_complete }, function(o)
             commands.load_cwd(o.fargs[1])
         end)
         cmd(names.rename, 'old_name? new_name?', { nargs = '*', complete = complete }, function(o)

@@ -35,8 +35,8 @@ local function complete_list(candidates, opts)
     end
 end
 
--- Limits filesystem access by caching the session names per command line access
----@type table<string, string>?
+-- Limits filesystem access by caching the session data per command line access
+---@type table<string, { name: string, cwd: string }>?
 local cached_names
 vim.api.nvim_create_autocmd('CmdlineLeave', {
     group = vim.api.nvim_create_augroup('possession.commands.complete', { clear = true }),
@@ -49,13 +49,33 @@ local function get_session_names()
     if not cached_names then
         cached_names = {}
         for file, data in pairs(session.list()) do
-            cached_names[file] = data.name
+            cached_names[file] = { name = data.name, cwd = data.cwd }
         end
     end
     return cached_names
 end
 
-M.complete_session = complete_list(get_session_names)
+M.complete_session = complete_list(function()
+    return vim.tbl_map(function(s)
+        return s.name
+    end, get_session_names())
+end)
+
+M.cwd_complete_session = complete_list(function()
+    local cwds = vim.tbl_map(function(s)
+        return s.cwd
+    end, get_session_names())
+
+    local distinct_cwds = {}
+
+    for _, v in pairs(cwds) do
+        if not vim.tbl_contains(distinct_cwds, v) then
+            table.insert(distinct_cwds, v)
+        end
+    end
+
+    return distinct_cwds
+end)
 
 local function get_current()
     local name = session.get_session_name()
