@@ -65,16 +65,7 @@ M.cwd_complete_session = complete_list(function()
     local cwds = vim.tbl_map(function(s)
         return s.cwd
     end, get_session_names())
-
-    local distinct_cwds = {}
-
-    for _, v in pairs(cwds) do
-        if not vim.tbl_contains(distinct_cwds, v) then
-            table.insert(distinct_cwds, v)
-        end
-    end
-
-    return distinct_cwds
+    return query.distinct_list(cwds)
 end)
 
 local function get_current()
