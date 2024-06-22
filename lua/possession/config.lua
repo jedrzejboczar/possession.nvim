@@ -153,11 +153,7 @@ local function fix_compatibility(opts)
 
     local autoload = vim.tbl_get(opts, 'autoload')
     if type(autoload) == 'table' then
-        local utils = require('possession.utils')
-        utils.warn(
-            'Possession plugin: Usage of config setting `autoload = { cwd = %s }` is deprecated. Refer to docs for new setting values.',
-            autoload.cwd
-        )
+        vim.deprecate('`setup.autoload.cwd = true`', '`autoload = "..."`', 'in the future', 'possession')
         opts.autoload = autoload.cwd and 'auto_cwd' or false
     end
 end
