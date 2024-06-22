@@ -30,19 +30,6 @@ function M.filter_by(sessions, opts)
     end, sessions)
 end
 
---- Produces a list of distinct values
----@param input table[]
-function M.distinct_list(input)
-    local distinct_list = {}
-    for _, v in pairs(input) do
-        if not vim.tbl_contains(distinct_list, v) then
-            table.insert(distinct_list, v)
-        end
-    end
-
-    return distinct_list
-end
-
 ---@alias possession.QuerySortKey 'name'|'atime'|'mtime'|'ctime'
 
 --- Sort a list of sessions in-place

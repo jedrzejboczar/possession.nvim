@@ -65,7 +65,7 @@ M.cwd_complete_session = complete_list(function()
     local cwds = vim.tbl_map(function(s)
         return s.cwd
     end, get_session_names())
-    return query.distinct_list(cwds)
+    return utils.table_to_unique_list(cwds)
 end)
 
 local function get_current()
