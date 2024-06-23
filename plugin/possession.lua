@@ -23,6 +23,11 @@ vim.api.nvim_create_autocmd('VimEnter', {
             vim.fn.delete(symlink)
         end
 
+        if vim.fn.argc() > 0 then
+            -- Skip autoload if any files or folders are passed as command line arguments.
+            return
+        end
+
         local utils = require('possession.utils')
         local al = utils.as_function(config.autoload)()
         if al and al ~= '' then
