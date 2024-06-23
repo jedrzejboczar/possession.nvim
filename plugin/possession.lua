@@ -16,7 +16,7 @@ vim.api.nvim_create_autocmd('VimEnter', {
         -- Be lazy when loading modules
         local config = require('possession.config')
 
-        -- Delete old symlink that is not used anymore
+        -- Delete old symlink that is not used any more
         -- TODO: remove when we explicitly drop support for nvim <0.10 which does not have vim.fs.joinpath
         if vim.tbl_get(vim, 'fs', 'joinpath') then
             local symlink = vim.fs.joinpath(config.session_dir, '__last__')
