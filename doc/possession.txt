@@ -166,8 +166,10 @@ autoload~
     or a directory. If it is a directory, the last session for that directory
     is loaded. The function can also return one of the above strings, in
     which case the behaviour is as defined for that string.
-    If any files or folders are passed as command line arguments to Neovim,
-    autoload is always skipped.
+
+    Autoload is skipped when:
+    - Neovim is passed any files or folders as arguments
+    - `stdin` is piped to Neovim
 
                                                             *possession-hooks*
 hooks.before_save~
