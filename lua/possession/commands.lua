@@ -128,7 +128,11 @@ end
 
 ---@param name? string
 function M.load_cwd(name)
-    name = name_or(name, paths.cwd_session_name)
+    local last = function()
+        return get_last(get_sessions_for_dir(vim.fn.getcwd()))
+    end
+
+    name = name_or(name, last)
     if name then
         session.load(name)
     else
