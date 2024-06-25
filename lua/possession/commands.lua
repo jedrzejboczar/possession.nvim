@@ -62,10 +62,13 @@ M.complete_session = complete_list(function()
 end)
 
 M.cwd_complete_session = complete_list(function()
-    local cwds = vim.tbl_map(function(s)
-        return s.cwd
+    local cwd = vim.fn.getcwd()
+    local cwd_sessions = vim.tbl_filter(function(s)
+        return s.cwd == cwd
     end, get_session_names())
-    return utils.table_to_unique_list(cwds)
+    return vim.tbl_map(function(s)
+        return s.name
+    end, cwd_sessions)
 end)
 
 local function get_current()
@@ -123,22 +126,17 @@ function M.save_cwd(no_confirm)
     session.save(paths.cwd_session_name(), { no_confirm = no_confirm })
 end
 
----@param dir? string directory to load last session from
-function M.load_cwd(dir)
-    if not dir then
-        session.load(paths.cwd_session_name())
-        return
-    end
-
-    local abs_dir = paths.absolute_dir(dir)
-    local last = get_last(get_sessions_for_dir(abs_dir))
-    if last then
-        session.load(last)
+---@param name? string
+function M.load_cwd(name)
+    name = name_or(name, paths.cwd_session_name)
+    if name then
+        session.load(name)
     else
-        utils.error('No session found for path ' .. abs_dir)
+        utils.error('Cannot find last loaded cwd session - specify session name as an argument')
     end
 end
 
+---@param session_type string
 function M.load_last(session_type)
     local last
     if session_type == 'last' then

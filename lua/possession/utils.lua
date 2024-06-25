@@ -111,23 +111,6 @@ function M.list_to_set(list)
     return set
 end
 
---- Given a table, produces a list of unique table values
----@generic K
----@generic V
----@param tbl table<K, V>
----@return V[]
-function M.table_to_unique_list(tbl)
-    local unique = {}
-    local output = {}
-    for _, v in pairs(tbl) do
-        if not unique[v] then
-            unique[v] = true
-            table.insert(output, v)
-        end
-    end
-    return output
-end
-
 --- Map elements from `list` and filter out nil values.
 ---@generic T
 ---@generic U
