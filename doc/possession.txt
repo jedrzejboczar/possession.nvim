@@ -24,7 +24,7 @@ loaded session name.
 :PossessionSaveCwd
 
 Save session for current working directory. Use `!` to avoid confirmation
-dialog.
+dialog. The session name will be the current working directory.
 
                                                           *:PossessionLoadCwd*
 :PossessionLoadCwd [{name}]
