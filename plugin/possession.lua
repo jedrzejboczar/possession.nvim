@@ -1,4 +1,12 @@
 local group = vim.api.nvim_create_augroup('Possession', {})
+local nvim_received_stdin = false
+
+vim.api.nvim_create_autocmd({ 'StdinReadPre' }, {
+    group = group,
+    callback = function()
+        nvim_received_stdin = true
+    end,
+})
 
 vim.api.nvim_create_autocmd({ 'VimLeavePre' }, {
     group = group,
@@ -13,6 +21,7 @@ vim.api.nvim_create_autocmd('VimEnter', {
     group = group,
     nested = true, -- to correctly setup buffers
     callback = function()
+        -- vim.cmd "clearjumps"
         -- Be lazy when loading modules
         local config = require('possession.config')
 
@@ -23,7 +32,7 @@ vim.api.nvim_create_autocmd('VimEnter', {
             vim.fn.delete(symlink)
         end
 
-        if vim.fn.argc() > 0 then
+        if vim.fn.argc() > 0 or nvim_received_stdin then
             -- Skip autoload if any files or folders are passed as command line arguments.
             return
         end
