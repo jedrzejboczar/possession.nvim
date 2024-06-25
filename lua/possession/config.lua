@@ -22,9 +22,7 @@ local function defaults()
             on_load = true,
             on_quit = true,
         },
-        autoload = {
-            cwd = false, -- or fun(): boolean
-        },
+        autoload = false, -- or 'last' or 'auto_cwd' or 'last_cwd' or fun(): string
         commands = {
             save = 'PossessionSave',
             load = 'PossessionLoad',
@@ -35,6 +33,7 @@ local function defaults()
             delete = 'PossessionDelete',
             show = 'PossessionShow',
             list = 'PossessionList',
+            list_cwd = 'PossessionListCwd',
             migrate = 'PossessionMigrate',
         },
         hooks = {
@@ -151,12 +150,18 @@ local function fix_compatibility(opts)
             enable = opts.telescope.previewer,
         }
     end
+
+    local autoload = vim.tbl_get(opts, 'autoload')
+    if type(autoload) == 'table' then
+        vim.deprecate('`setup.autoload.cwd = true`', '`autoload = "..."`', 'in the future', 'possession')
+        opts.autoload = autoload.cwd and 'auto_cwd' or false
+    end
 end
 
 function M.setup(opts)
-    warn_on_unknown_keys(opts)
-
     fix_compatibility(opts)
+
+    warn_on_unknown_keys(opts)
 
     local new_config = vim.tbl_deep_extend('force', {}, defaults(), opts or {})
     -- Do _not_ replace the table pointer with `config = ...` because this

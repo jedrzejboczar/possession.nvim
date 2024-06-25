@@ -76,9 +76,7 @@ require('possession').setup {
         on_load = true,
         on_quit = true,
     },
-    autoload = {
-        cwd = false, -- or fun(): boolean
-    },
+    autoload = false, -- or 'last' or 'auto_cwd' or 'last_cwd' or fun(): string
     commands = {
         save = 'PossessionSave',
         load = 'PossessionLoad',
@@ -89,6 +87,7 @@ require('possession').setup {
         delete = 'PossessionDelete',
         show = 'PossessionShow',
         list = 'PossessionList',
+        list_cwd = 'PossessionListCwd',
         migrate = 'PossessionMigrate',
     },
     hooks = {
@@ -191,6 +190,9 @@ require('telescope').load_extension('possession')
 
 Then use `:Telescope possession list` or `require('telescope').extensions.possession.list()`
 The default action will load selected session.
+
+Alternatively, use `:Telescope possession list only_cwd=true` or `require('telescope').extensions.possession.list({only_cwd=true})`
+This will limit the displayed sessions to those related to the current working directory.
 
 ![telescope](./img/telescope.png)
 

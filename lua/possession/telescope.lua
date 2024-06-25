@@ -64,6 +64,7 @@ local session_actions = {
 ---@field default_action? 'load'|'save'|'delete'
 ---@field sessions? table[] list of sessions like returned by query.as_list
 ---@field sort? boolean|possession.QuerySortKey sort the initial sessions list, `true` means 'mtime'
+---@field only_cwd? boolean only display sessions for the cwd
 
 ---@param opts possession.TelescopeListOpts
 function M.list(opts)
@@ -71,6 +72,7 @@ function M.list(opts)
         default_action = 'load',
         sessions = nil,
         sort = 'mtime',
+        only_cwd = false,
     }, opts or {})
 
     assert(
@@ -80,6 +82,10 @@ function M.list(opts)
 
     local get_finder = function()
         local sessions = opts.sessions and vim.list_slice(opts.sessions) or query.as_list()
+        if opts.only_cwd then
+            sessions = query.filter_by(sessions, { cwd = vim.fn.getcwd() })
+        end
+
         if opts.sort then
             local key = opts.sort == true and 'name' or opts.sort
             local descending = key ~= 'name'

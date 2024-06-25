@@ -95,9 +95,9 @@ function M.save(name, opts)
 
             state.session_name = name
 
-            utils.info('Saved as "%s"', short)
+            utils.info('Saved session as "%s"', short)
         else
-            utils.info('Aborting save')
+            utils.info('Aborting session save')
         end
 
         if not opts.vimscript then
@@ -123,7 +123,6 @@ end
 ---@param new_name string new name to use
 function M.rename(old_name, new_name)
     vim.validate {
-        old_name = { old_name, 'string' },
         new_name = { new_name, 'string' },
     }
 
@@ -178,10 +177,10 @@ function M.autosave_info()
     end
 end
 
-function M.autosave()
-    local info = M.autosave_info()
+function M.autosave(autosave_info)
+    local info = autosave_info or M.autosave_info()
     if info then
-        utils.debug('Auto-saving %s session "%s"', info.variant, state.session_name)
+        utils.debug('Auto-saving %s session "%s"', info.variant, info.name)
         M.save(info.name, { no_confirm = true })
     end
 end
@@ -219,9 +218,10 @@ local function restore_global_options(options)
 end
 
 --- Load session by name (or from raw data)
----
 ---@param name_or_data string|table name or raw data that will be saved as the session file in JSON format
-function M.load(name_or_data)
+---@param opts? { skip_autosave?: boolean }
+function M.load(name_or_data, opts)
+    opts = opts or { skip_autosave = false }
     vim.validate { name_or_data = { name_or_data, utils.is_type { 'string', 'table' } } }
 
     -- Load session data
@@ -229,15 +229,21 @@ function M.load(name_or_data)
     local path
     if type(name_or_data) == 'string' then
         path = paths.session(name_or_data)
+        if not path:exists() then
+            utils.error('Cannot load session "%s" - it does not exist', name_or_data)
+            return
+        end
         session_data = vim.json.decode(path:read())
     else
         session_data = name_or_data
     end
 
     -- Autosave if not loading the auto-saved session itself
-    local autosave_info = M.autosave_info()
-    if config.autosave.on_load and (autosave_info and session_data.name ~= M.autosave_info().name) then
-        M.autosave()
+    if not opts.skip_autosave then
+        local autosave_info = M.autosave_info()
+        if config.autosave.on_load and (autosave_info and session_data.name ~= autosave_info.name) then
+            M.autosave(autosave_info)
+        end
     end
 
     -- Run pre-load hook that can pre-process user data, abort if returns falsy value.
@@ -311,7 +317,7 @@ function M.delete(name, opts)
     local short = paths.session_short(name)
 
     if not path:exists() then
-        utils.warn('Session not exists: "%s"', path:absolute())
+        utils.warn('Cannot delete session "%s" - it does not exist', path:absolute())
         return
     end
 
@@ -323,10 +329,10 @@ function M.delete(name, opts)
                 if state.session_name == name then
                     state.session_name = nil
                 end
-                utils.info('Deleted "%s"', short)
+                utils.info('Deleted session "%s"', short)
             end
         else
-            utils.info('Aborting delete')
+            utils.info('Aborting session delete')
         end
 
         if opts.callback then

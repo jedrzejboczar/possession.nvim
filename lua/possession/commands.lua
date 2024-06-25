@@ -35,8 +35,8 @@ local function complete_list(candidates, opts)
     end
 end
 
--- Limits filesystem access by caching the session names per command line access
----@type table<string, string>?
+-- Limits filesystem access by caching the session data per command line access
+---@type table<string, { name: string, cwd: string }>?
 local cached_names
 vim.api.nvim_create_autocmd('CmdlineLeave', {
     group = vim.api.nvim_create_augroup('possession.commands.complete', { clear = true }),
@@ -49,13 +49,27 @@ local function get_session_names()
     if not cached_names then
         cached_names = {}
         for file, data in pairs(session.list()) do
-            cached_names[file] = data.name
+            cached_names[file] = { name = data.name, cwd = data.cwd }
         end
     end
     return cached_names
 end
 
-M.complete_session = complete_list(get_session_names)
+M.complete_session = complete_list(function()
+    return vim.tbl_map(function(s)
+        return s.name
+    end, get_session_names())
+end)
+
+M.cwd_complete_session = complete_list(function()
+    local cwd = vim.fn.getcwd()
+    local cwd_sessions = vim.tbl_filter(function(s)
+        return s.cwd == cwd
+    end, get_session_names())
+    return vim.tbl_map(function(s)
+        return s.name
+    end, cwd_sessions)
+end)
 
 local function get_current()
     local name = session.get_session_name()
@@ -66,15 +80,17 @@ local function get_current()
     return name
 end
 
-local function get_last()
-    local sessions = query.as_list()
+---@param dir string dir to get sessions for
+local function get_sessions_for_dir(dir)
+    return query.filter_by(query.as_list(), { cwd = paths.absolute_dir(dir) })
+end
+
+---@param sessions? table[] list of sessions from `as_list`
+local function get_last(sessions)
+    sessions = sessions or query.as_list()
     query.sort_by(sessions, 'mtime', true)
     local last_session = sessions and sessions[1]
-    if not last_session then
-        utils.error('Cannot find last loaded session - specify session name as an argument')
-        return nil
-    end
-    return last_session.name
+    return last_session and last_session.name
 end
 
 local function name_or(name, getter)
@@ -100,6 +116,8 @@ function M.load(name)
     name = name_or(name, get_last)
     if name then
         session.load(name)
+    else
+        utils.error('Cannot find last loaded session - specify session name as an argument')
     end
 end
 
@@ -108,8 +126,52 @@ function M.save_cwd(no_confirm)
     session.save(paths.cwd_session_name(), { no_confirm = no_confirm })
 end
 
-function M.load_cwd()
-    session.load(paths.cwd_session_name())
+---@param name? string
+function M.load_cwd(name)
+    local last = function()
+        return get_last(get_sessions_for_dir(vim.fn.getcwd()))
+    end
+
+    name = name_or(name, last)
+    if name then
+        session.load(name)
+    else
+        utils.error('Cannot find last loaded cwd session - specify session name as an argument')
+    end
+end
+
+---@param session_type string
+function M.load_last(session_type)
+    local last
+    if session_type == 'last' then
+        last = get_last()
+    elseif session_type == 'auto_cwd' then
+        last = paths.cwd_session_name()
+    elseif session_type == 'last_cwd' then
+        last = get_last(get_sessions_for_dir(vim.fn.getcwd()))
+    elseif session_type then
+        -- Something was returned from custom config function.
+        if vim.fn.isdirectory(vim.fn.fnamemodify(session_type, ':p')) == 1 then
+            local abs = paths.absolute_dir(session_type)
+            last = get_last(get_sessions_for_dir(abs))
+        else
+            -- Try to load returned string as literal session name.
+
+            -- Futher down the `session.load` call stack will error
+            -- if `session_type` ends with `.json`. Strip if off, it
+            -- will get added back when needed.
+            last = string.gsub(session_type, '.json$', '')
+        end
+    else
+        utils.error('Possession.nvim: Unknown `autoload` config value `' .. session_type .. '`')
+        return
+    end
+
+    if last then
+        session.load(last, { skip_autosave = true })
+        return last
+    end
+    utils.info('No session found to autoload')
 end
 
 local function maybe_input(value, opts, callback)
@@ -172,6 +234,12 @@ end
 ---@param full? boolean
 function M.list(full)
     display.echo_sessions { vimscript = full }
+end
+
+---@param full? boolean
+function M.list_cwd(dir, full)
+    dir = dir or vim.fn.getcwd()
+    display.echo_sessions { vimscript = full, sessions = get_sessions_for_dir(dir) }
 end
 
 ---@param path string
