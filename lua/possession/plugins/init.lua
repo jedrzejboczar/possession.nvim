@@ -15,6 +15,7 @@ local plugins = {
     'dapui',
     'dap',
     'delete_buffers',
+    'stop_lsp_clients',
 }
 
 local function req(plugin)

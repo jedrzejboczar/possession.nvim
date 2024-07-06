@@ -214,12 +214,15 @@ local function lsp_get_clients(filter)
     end
 end
 
+--- Stops all attached LSP clients
+function M.stop_lsp_clients()
+    vim.lsp.stop_client(lsp_get_clients())
+end
+
 --- Delete all open buffers, avoiding potential errors
 ---@param force? boolean delete buffers with unsaved changes
 function M.delete_all_buffers(force)
     -- Deleting the current buffer before deleting other buffers will cause autocmd "BufEnter" to be triggered.
-    -- Lspconfig will use the invalid buffer handler in vim.schedule.
-    -- So make sure the current buffer is the last loaded one to delete.
     local current_buffer = vim.api.nvim_get_current_buf()
     for _, buffer in ipairs(vim.api.nvim_list_bufs()) do
         if vim.api.nvim_buf_is_valid(buffer) and current_buffer ~= buffer then
@@ -227,7 +230,6 @@ function M.delete_all_buffers(force)
         end
     end
     vim.api.nvim_buf_delete(current_buffer, { force = force })
-    vim.lsp.stop_client(lsp_get_clients())
 end
 
 ---@param mod string

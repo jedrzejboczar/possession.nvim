@@ -123,6 +123,7 @@ require('possession').setup {
         dapui = true,
         neotest = true,
         delete_buffers = false,
+        stop_lsp_clients = false,
     },
     telescope = {
         previewer = {

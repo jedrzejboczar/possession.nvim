@@ -291,6 +291,7 @@ function M.close(force)
     end
 
     utils.delete_all_buffers(force)
+    utils.stop_lsp_clients()
     state.session_name = nil
 end
 
