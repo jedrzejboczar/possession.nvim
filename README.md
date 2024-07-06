@@ -198,15 +198,15 @@ This will limit the displayed sessions to those related to the current working d
 
 ## Auto-save
 
-It is possible to automatically save the current session (or create a tmp session) when quitting
+It is possible to automatically save the current session (or create a tmp or cwd session) when quitting
 Neovim or loading a different session. This behavior is disabled by default, but can be enabled
 using the `autosave.*` configuration options. Check [doc/possession.txt](./doc/possession.txt)
 for details.
 
 ## Auto-load
 
-Sessions can be auto-loaded by setting the `autoload.*` config options. Currently only autoloading
-based on CWD is supported.
+Sessions can be auto-loaded by setting the `autoload.*` config options. Check [doc/possession.txt](./doc/possession.txt)
+for details.
 
 ## Statusline
 
