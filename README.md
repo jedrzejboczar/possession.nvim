@@ -204,6 +204,20 @@ Neovim or loading a different session. This behavior is disabled by default, but
 using the `autosave.*` configuration options. Check [doc/possession.txt](./doc/possession.txt)
 for details.
 
+### Overwriting CWD session
+
+When `autosave.cwd` is set to `true`, there are situations were the cwd session might be saved when it is not wanted,
+e.g. when file arguments are passed to Neovim, and when a session is closed via `:PossessionClose`
+(see https://github.com/jedrzejboczar/possession.nvim/issues/72 for details).
+To prevent overwriting the cwd session in these cases, you can use the following setting:
+```lua
+autosave = {
+    cwd = function()
+          return not require('possession.session').exists(require('possession.paths').cwd_session_name())
+    end
+}
+```
+
 ## Auto-load
 
 Sessions can be auto-loaded by setting the `autoload.*` config options. Check [doc/possession.txt](./doc/possession.txt)
