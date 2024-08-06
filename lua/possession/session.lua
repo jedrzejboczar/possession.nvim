@@ -157,31 +157,29 @@ local function autosave_skip()
     return not unscratch_buffers or not next(unscratch_buffers)
 end
 
----@return { name: string, variant: 'current'|'cwd'|'tmp' }?
+---@return { name: string, variant: 'current'|'cwd'|'tmp' }[]
 function M.autosave_info()
-    if state.session_name then
-        if not utils.as_function(config.autosave.current)(state.session_name) then
-            return
-        end
-        return { name = state.session_name, variant = 'current' }
-    elseif utils.as_function(config.autosave.cwd)() then
-        if autosave_skip() then
-            return
-        end
-        return { name = paths.cwd_session_name(), variant = 'cwd' }
-    elseif utils.as_function(config.autosave.tmp)() then
-        if autosave_skip() then
-            return
-        end
-        return { name = utils.as_function(config.autosave.tmp_name)(), variant = 'tmp' }
+    local infos = {}
+    if state.session_name and utils.as_function(config.autosave.current)(state.session_name) then
+        table.insert(infos, { name = state.session_name, variant = 'current' })
     end
+    if not autosave_skip() then
+        if utils.as_function(config.autosave.cwd)() then
+            table.insert(infos, { name = paths.cwd_session_name(), variant = 'cwd' })
+        end
+        if utils.as_function(config.autosave.tmp)() then
+             table.insert(infos, { name = utils.as_function(config.autosave.tmp_name)(), variant = 'tmp' })
+        end
+    end
+    return infos
 end
 
-function M.autosave(autosave_info)
-    local info = autosave_info or M.autosave_info()
-    if info then
-        utils.debug('Auto-saving %s session "%s"', info.variant, info.name)
-        M.save(info.name, { no_confirm = true })
+function M.autosave(autosave_info, skip)
+    for _, info in ipairs(autosave_info or M.autosave_info()) do
+        if not (skip and skip(info)) then
+            utils.debug('Auto-saving %s session "%s"', info.variant, info.name)
+            M.save(info.name, { no_confirm = true })
+        end
     end
 end
 
@@ -240,9 +238,11 @@ function M.load(name_or_data, opts)
 
     -- Autosave if not loading the auto-saved session itself
     if not opts.skip_autosave then
-        local autosave_info = M.autosave_info()
-        if config.autosave.on_load and (autosave_info and session_data.name ~= autosave_info.name) then
-            M.autosave(autosave_info)
+        if config.autosave.on_load then
+            M.autosave(nil, function(info)
+                local skip = session_data.name == info.name
+                return skip
+            end)
         end
     end
 
