@@ -30,6 +30,33 @@ function M.filter_by(sessions, opts)
     end, sessions)
 end
 
+---  Gets file timestmap
+---@param file string a file path
+---@param key possession.QuerySortKey key to sort by: name, stat(2) timestamps
+local get_time = function(file, key)
+    local stat = vim.loop.fs_stat(file)
+    if not stat then
+        return 0
+    end
+    local t = stat[key]
+    -- use millis to fit in Lua's max float "integer precision" of 53 bits
+    return math.floor(t.sec * 1000 + t.nsec / 1000000)
+end
+
+--- Annotates each session object in list with timestamp
+---@param sessions table[] list of sessions from `as_list`
+---@param key possession.QuerySortKey key to sort by: name, stat(2) timestamps
+function M.annotate_with_timestamp(sessions, key)
+    if not vim.tbl_contains({ 'atime', 'mtime', 'ctime' }, key) then
+        return
+    end
+
+    for _, s in ipairs(sessions) do
+        local ts = get_time(s.file, key)
+        s[key] = ts
+    end
+end
+
 ---@alias possession.QuerySortKey 'name'|'atime'|'mtime'|'ctime'
 
 --- Sort a list of sessions in-place
@@ -44,25 +71,17 @@ function M.sort_by(sessions, key, descending)
             return s.name
         end
     elseif vim.tbl_contains({ 'atime', 'mtime', 'ctime' }, key) then
-        local get_time = function(file)
-            local stat = vim.loop.fs_stat(file)
-            if not stat then
-                return 0
-            end
-            local t = stat[key]
-            -- use millis to fit in Lua's max float "integer precision" of 53 bits
-            return math.floor(t.sec * 1000 + t.nsec / 1000000)
-        end
-        -- cache filesystem access
-        local times = {}
         get_key = function(s)
             if not s.file then
                 return 0
-            elseif times[s.file] then
-                return times[s.file]
+            elseif s[key] then
+                -- If session is annotated with timestamp use it
+                return s[key]
             end
-            local t = get_time(s.file)
-            times[s.file] = t
+
+            local t = get_time(s.file, key)
+            -- Cache timestamp in session object
+            s[key] = t
             return t
         end
     end
