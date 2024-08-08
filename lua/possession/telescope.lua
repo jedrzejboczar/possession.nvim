@@ -7,12 +7,15 @@ local finders = require('telescope.finders')
 local pickers = require('telescope.pickers')
 local previewers = require('telescope.previewers')
 local transform_mod = require('telescope.actions.mt').transform_mod
+local entry_display = require('telescope.pickers.entry_display')
 
 local config = require('possession.config')
 local session = require('possession.session')
 local display = require('possession.display')
 local query = require('possession.query')
 local utils = require('possession.utils')
+
+local CURRENT_YEAR = os.date('%Y')
 
 local function session_previewer(opts)
     return previewers.new_buffer_previewer {
@@ -64,6 +67,7 @@ local session_actions = {
 ---@field default_action? 'load'|'save'|'delete'
 ---@field sessions? table[] list of sessions like returned by query.as_list
 ---@field sort? boolean|possession.QuerySortKey sort the initial sessions list, `true` means 'mtime'
+---@field ts_annotation? possession.QuerySortKey annotate telescope results with timestamp
 ---@field only_cwd? boolean only display sessions for the cwd
 
 ---@param opts possession.TelescopeListOpts
@@ -72,6 +76,7 @@ function M.list(opts)
         default_action = 'load',
         sessions = nil,
         sort = 'mtime',
+        ts_annotation = 'mtime',
         only_cwd = false,
     }, opts or {})
 
@@ -86,17 +91,51 @@ function M.list(opts)
             sessions = query.filter_by(sessions, { cwd = vim.fn.getcwd() })
         end
 
+        if opts.ts_annotation then
+            query.annotate_with_timestamp(sessions, opts.ts_annotation)
+        end
+
         if opts.sort then
             local key = opts.sort == true and 'name' or opts.sort
             local descending = key ~= 'name'
             query.sort_by(sessions, key, descending)
         end
+
         return finders.new_table {
             results = sessions,
             entry_maker = function(entry)
+                local make_display = entry.name
+
+                if opts.ts_annotation then
+                    local displayer = entry_display.create {
+                        separator = ' ',
+                        items = {
+                            { width = nil },
+                            { remaining = true },
+                        },
+                    }
+
+                    make_display = function(e)
+                        local ts_sec = e.value[opts.ts_annotation] / 1000
+                        local format
+                        if CURRENT_YEAR ~= os.date('%Y', ts_sec) then
+                            format = '%b %d  %Y'
+                        else
+                            format = '%b %d %H:%M'
+                        end
+
+                        local mtime_part = os.date(format, ts_sec)
+
+                        return displayer {
+                            { mtime_part, 'TelescopeResultsField' },
+                            e.value.name,
+                        }
+                    end
+                end
+
                 return {
                     value = entry,
-                    display = entry.name,
+                    display = make_display,
                     ordinal = entry.name,
                 }
             end,
