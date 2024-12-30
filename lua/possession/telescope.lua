@@ -61,6 +61,14 @@ local session_actions = {
             end
         end)
     end,
+    grep = function(prompt_buf, entry, refresh)
+        actions.close(prompt_buf)
+        require('telescope.builtin').live_grep({ cwd = entry.value.cwd, prompt_title = ('Live Grep (%s)'):format(entry.value.name) })
+    end,
+    find = function(prompt_buf, entry, refresh)
+        actions.close(prompt_buf)
+        require('telescope.builtin').find_files({ cwd = entry.value.cwd, prompt_title = ('Find files (%s)'):format(entry.value.name) })
+    end,
 }
 
 ---@class possession.TelescopeListOpts
