@@ -12,7 +12,7 @@ currently loaded session is used (unless noted otherwise).
 Save the current session information under `session_dir`. Use
 `:PossessionSave! [{name}]` to avoid asking for confirmation when overwriting
 existing session file. If [{name}] is omitted and a session does not
-already exist, you will be prompted for a name. 
+already exist, you will be prompted for a name.
 
                                                              *:PossessionLoad*
 :PossessionLoad [{name}]~
@@ -156,7 +156,7 @@ autosave.on_quit~
 
                                                          *possession-autoload*
 autoload~
-    `string | function(): string
+    `false | string | function(): string
     Automatically load a session. Valid string values are:
     - `last` loads the last saved session
     - `auto_cwd` loads the session saved by `autosave.cwd` or `:PossessionSaveCwd`

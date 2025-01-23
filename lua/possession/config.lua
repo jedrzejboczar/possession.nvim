@@ -158,6 +158,12 @@ local function fix_compatibility(opts)
     if type(autoload) == 'table' then
         vim.deprecate('`setup.autoload.cwd = true`', '`autoload = "..."`', 'in the future', 'possession')
         opts.autoload = autoload.cwd and 'auto_cwd' or false
+    elseif autoload == true then
+        vim.notify(
+            '`setup.autoload = true` is not valid, see `:help possession-autoload` for valid values',
+            vim.log.levels.WARN
+        )
+        opts.autoload = 'last'
     end
 end
 
