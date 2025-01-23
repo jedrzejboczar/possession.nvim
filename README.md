@@ -143,6 +143,8 @@ require('possession').setup {
                 load = { n = '<c-v>', i = '<c-v>' },
                 delete = { n = '<c-t>', i = '<c-t>' },
                 rename = { n = '<c-r>', i = '<c-r>' },
+                grep   = { n = '<c-g>', i = '<c-g>' },
+                find   = { n = '<c-f>', i = '<c-f>' },
             },
         },
     },
