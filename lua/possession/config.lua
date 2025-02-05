@@ -21,6 +21,9 @@ local function defaults()
             tmp_name = 'tmp', -- or fun(): string
             on_load = true,
             on_quit = true,
+            -- TODO: actually use this option in implementation
+            all_matching = true,
+
         },
         autoload = false, -- or 'last' or 'auto_cwd' or 'last_cwd' or fun(): string
         commands = {
