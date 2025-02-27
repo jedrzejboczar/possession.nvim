@@ -12,6 +12,7 @@ local plugins = {
     'outline',
     'tabby',
     'neotest',
+    'kulala',
     'dapui',
     'dap',
     'delete_buffers',
@@ -141,7 +142,7 @@ end
 
 ---@class possession.FileTreePluginOpts
 ---@field buf_is_plugin fun(buf: integer): boolean check if given buffer belongs to the plugin, e.g. by filetype
----@field open_in_tab fun(tab: integer) open the plugin in tab (tab is the current tab when this function is called)
+---@field open_in_tab? fun(tab: integer) open the plugin in tab (tab is the current tab when this function is called)
 ---@field close_in_tab? fun(tab: integer): boolean if not provided then deletes all plugin buffers
 ---@field has_plugin? string|fun(): boolean if it is a string will try to require lua module, if nil then assume true
 
@@ -187,7 +188,9 @@ function M.implement_file_tree_plugin_hooks(name, opts)
 
     local open_in_tab_nums = function(tab_nums)
         local tabs = utils.tab_nums_to_ids(tab_nums)
-        utils.for_each_tab(tabs, opts.open_in_tab)
+        if opts.open_in_tab then
+            utils.for_each_tab(tabs, opts.open_in_tab)
+        end
     end
 
     local has_plugin = function()
