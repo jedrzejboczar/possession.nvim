@@ -68,6 +68,7 @@ local function defaults()
             dap = true,
             dapui = true,
             neotest = true,
+            kulala = true,
             delete_buffers = false,
             stop_lsp_clients = false,
         },

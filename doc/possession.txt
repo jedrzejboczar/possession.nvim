@@ -307,6 +307,10 @@ Closes and restores dapui view in a tab.
 
 Closes and restores the summary window.
 
+                                                          *possession-kulala*
+
+Closes the UI
+
                                                  *possession-stop-lsp-clients*
 
 Stops all attached language server protocol clients.
