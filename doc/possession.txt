@@ -54,6 +54,13 @@ Delete given session file. `:PossessionDelete!` will not ask for confirmation.
 
 Show given session info.
 
+                                                             *:PossessionPick*
+:PossessionPick
+
+List available sessions, using `vim.ui.select`. Allows selecting one to be
+loaded. Can be used as an alternative to `:Telescope possession list` if
+telescope isn't installed.
+
                                                              *:PossessionList*
 :PossessionList~
 

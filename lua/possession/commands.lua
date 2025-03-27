@@ -231,6 +231,29 @@ function M.show(name)
     vim.api.nvim_win_set_buf(0, buf)
 end
 
+function M.pick()
+    local sessions = query.as_list()
+    query.sort_by(sessions, 'mtime', true)
+
+    vim.ui.select(
+        sessions,
+        {
+            prompt = 'Pick a session ',
+            ---@param item {name: string}
+            format_item = function(item)
+                return item.name
+            end,
+        }, ---@param choice {name: string}?
+        function(choice)
+            if choice ~= nil then
+                session.load(choice.name)
+            else
+                vim.notify('No session was selected')
+            end
+        end
+    )
+end
+
 ---@param full? boolean
 function M.list(full)
     display.echo_sessions { vimscript = full }

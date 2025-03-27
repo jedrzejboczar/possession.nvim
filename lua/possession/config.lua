@@ -32,6 +32,7 @@ local function defaults()
             close = 'PossessionClose',
             delete = 'PossessionDelete',
             show = 'PossessionShow',
+            pick = 'PossessionPick',
             list = 'PossessionList',
             list_cwd = 'PossessionListCwd',
             migrate = 'PossessionMigrate',
