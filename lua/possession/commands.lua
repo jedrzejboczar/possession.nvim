@@ -246,7 +246,11 @@ function M.pick()
         }, ---@param choice {name: string}?
         function(choice)
             if choice ~= nil then
-                session.load(choice.name)
+                -- Handle fzf-lua throwing
+                -- Vim(normal):Can't re-enter normal mode from terminal mode
+                vim.defer_fn(function()
+                    session.load(choice.name)
+                end, 10)
             else
                 vim.notify('No session was selected')
             end
