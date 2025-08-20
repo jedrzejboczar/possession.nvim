@@ -207,10 +207,11 @@ function M.close(force)
 end
 
 ---@param name? string
-function M.delete(name)
+---@param force? boolean
+function M.delete(name, force)
     name = name_or(name, get_current)
     if name then
-        session.delete(name)
+        session.delete(name, { no_confirm = force })
     end
 end
 
