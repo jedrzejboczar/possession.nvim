@@ -42,13 +42,11 @@ function M.save(name, opts)
         cwd = nil,
     }, opts or {})
 
-    vim.validate {
-        name = { name, 'string' },
-        vimscript = { opts.vimscript, utils.is_type { 'nil', 'string' } },
-        no_confirm = { opts.no_confirm, 'boolean' },
-        callback = { opts.callback, utils.is_type { 'function', 'nil' } },
-        cwd = { opts.cwd, utils.is_type { 'string', 'nil' } },
-    }
+    vim.validate('name', name, 'string')
+    vim.validate('vimscript', opts.vimscript, utils.is_type { 'nil', 'string' })
+    vim.validate('no_confirm', opts.no_confirm, 'boolean')
+    vim.validate('callback', opts.callback, utils.is_type { 'function', 'nil' })
+    vim.validate('cwd', opts.cwd, utils.is_type { 'string', 'nil' })
 
     local vimscript
     local user_data
@@ -122,9 +120,7 @@ end
 ---@param old_name string session to be renamed
 ---@param new_name string new name to use
 function M.rename(old_name, new_name)
-    vim.validate {
-        new_name = { new_name, 'string' },
-    }
+    vim.validate('new_name', new_name, 'string')
 
     local old_path = paths.session(old_name)
     local new_path = paths.session(new_name)
@@ -222,7 +218,7 @@ end
 ---@param opts? { skip_autosave?: boolean }
 function M.load(name_or_data, opts)
     opts = opts or { skip_autosave = false }
-    vim.validate { name_or_data = { name_or_data, utils.is_type { 'string', 'table' } } }
+    vim.validate('name_or_data', name_or_data, utils.is_type { 'string', 'table' })
 
     -- Load session data
     local session_data
@@ -308,11 +304,9 @@ function M.delete(name, opts)
         callback = nil,
     }, opts or {})
 
-    vim.validate {
-        name = { name, 'string' },
-        no_confirm = { opts.no_confirm, 'boolean' },
-        callback = { opts.callback, utils.is_type { 'function', 'nil' } },
-    }
+    vim.validate('name', name, 'string')
+    vim.validate('no_confirm', opts.no_confirm, 'boolean')
+    vim.validate('callback', opts.callback, utils.is_type { 'function', 'nil' })
 
     local path = paths.session(name)
     local short = paths.session_short(name)

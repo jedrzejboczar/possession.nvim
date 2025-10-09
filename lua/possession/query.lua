@@ -110,10 +110,8 @@ end
 ---@return table<string, table[]>
 ---@return table[]
 function M.group_by(key, sessions)
-    vim.validate {
-        key = { key, utils.is_type { 'string', 'function' } },
-        sessions = { sessions, utils.is_type { 'table', 'nil' } },
-    }
+    vim.validate('key', key, utils.is_type { 'string', 'function' })
+    vim.validate('sessions', sessions, utils.is_type { 'table', 'nil' })
 
     sessions = sessions or M.as_list()
 
@@ -229,13 +227,11 @@ function M.workspaces_with_shortcuts(workspace_specs, opts)
         map_session = nil,
     }, opts or {})
 
-    vim.validate {
-        workspace_specs = { workspace_specs, 'table' },
-        sessions = { opts.sessions, utils.is_type { 'nil', 'table' } },
-        others_prefix = { opts.others_prefix, 'string' },
-        sort_by = { opts.sort_by, utils.is_type { 'nil', 'string' } },
-        map_session = { opts.map_session, utils.is_type { 'nil', 'function' } },
-    }
+    vim.validate('workspace_specs', workspace_specs, 'table')
+    vim.validate('sessions', opts.sessions, utils.is_type { 'nil', 'table' })
+    vim.validate('others_prefix', opts.others_prefix, 'string')
+    vim.validate('sort_by', opts.sort_by, utils.is_type { 'nil', 'string' })
+    vim.validate('map_session', opts.map_session, utils.is_type { 'nil', 'function' })
 
     local workspaces = {} -- {name: root_dir} for by_workspace
     local prefixes = {} -- {name: prefix} for generating shortcuts
@@ -303,11 +299,9 @@ function M.alpha_workspace_layout(workspace_specs, create_button, opts)
         others_name = 'Sessions',
     }, opts or {})
 
-    vim.validate {
-        create_button = { create_button, 'function' },
-        title_highlight = { opts.title_highlight, 'string' },
-        others_name = { opts.others_name, 'string' },
-    }
+    vim.validate('create_button', create_button, 'function')
+    vim.validate('title_highlight', opts.title_highlight, 'string')
+    vim.validate('others_name', opts.others_name, 'string')
 
     -- Get lists of session names with shortcuts assigned
     local workspaces, others = M.workspaces_with_shortcuts(workspace_specs, {

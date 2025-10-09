@@ -25,7 +25,7 @@ end
 
 local function get_config(plugin)
     local c = config.plugins[plugin]
-    vim.validate { config = { c, utils.is_type { 'boolean', 'table' } } }
+    vim.validate('config', c, utils.is_type { 'boolean', 'table' })
     if type(c) == 'boolean' then
         return c and {} or nil
     end
