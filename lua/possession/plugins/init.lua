@@ -119,6 +119,22 @@ function M.after_load(name, plugin_data)
     end
 end
 
+---@param name string
+---@param plugin_data table
+function M.before_close(name, plugin_data)
+    for _, p in ipairs(get_enabled('before_close')) do
+        call_plugin('before_close', p, name, plugin_data[p])
+    end
+end
+
+---@param name string
+---@param plugin_data table
+function M.after_close(name, plugin_data)
+    for _, p in ipairs(get_enabled('after_close')) do
+        call_plugin('after_close', p, name, plugin_data[p])
+    end
+end
+
 --- Crate a basic implementation of plugin hooks that does not store any session data.
 ---@param fn fun(opts: table): boolean receives plugin config and should return `true` on success
 function M.implement_basic_hooks(fn)
@@ -135,6 +151,12 @@ function M.implement_basic_hooks(fn)
             return fn(opts) and plugin_data
         end,
         after_load = function(opts, name, plugin_data)
+            fn(opts)
+        end,
+        before_close = function(opts, name, plugin_data)
+            fn(opts)
+        end,
+        after_close = function(opts, name, plugin_data)
             fn(opts)
         end,
     }
